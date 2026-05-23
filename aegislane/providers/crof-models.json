@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "sources": [
+    "https://crof.ai/docs.md",
+    "https://crof.ai/v1/models",
+    "https://beta.crof.ai/v1/models",
+    "https://opencode.ai/docs/providers/",
+    "https://opencode.ai/config.json"
+  ],
+  "providers": {
+    "crof": {
+      "baseURL": "https://crof.ai/v1",
+      "apiKeyRef": "{file:./aegislane/logs/tmp/crofai-api-key}"
+    },
+    "crof-beta": {
+      "baseURL": "https://beta.crof.ai/v1",
+      "apiKeyRef": "{file:./aegislane/logs/tmp/crofai-api-key}"
+    }
+  },
+  "reasoningEffort": {
+    "parameter": "reasoning_effort",
+    "acceptedValues": [
+      "none",
+      "low",
+      "medium",
+      "high"
+    ],
+    "defaultByPurpose": {
+      "fast": "low",
+      "balanced": "medium",
+      "precision": "high",
+      "disabled": "none"
+    }
+  },
+  "models": [
+    {
+      "id": "deepseek-v4-pro",
+      "quantization": "Q4_0",
+      "context": 1000000,
+      "output": 131072,
+      "inputCost": 0.4,
+      "cacheReadCost": 0.003,
+      "outputCost": 0.85,
+      "speedTokensPerSecond": 67,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "deepseek-v4-pro-precision",
+      "quantization": "Q8_0",
+      "context": 1000000,
+      "output": 131072,
+      "inputCost": 1.25,
+      "cacheReadCost": 0.1,
+      "outputCost": 2.5,
+      "speedTokensPerSecond": 58,
+      "requestMultiplier": 2,
+      "reasoning": true,
+      "defaultReasoningEffort": "high"
+    },
+    {
+      "id": "deepseek-v4-flash",
+      "quantization": "Q4_0",
+      "context": 1000000,
+      "output": 131072,
+      "inputCost": 0.12,
+      "cacheReadCost": 0.02,
+      "outputCost": 0.21,
+      "speedTokensPerSecond": 29,
+      "requestMultiplier": 0.75,
+      "reasoning": true,
+      "defaultReasoningEffort": "low"
+    },
+    {
+      "id": "deepseek-v3.2",
+      "quantization": "Q4_0",
+      "context": 163840,
+      "output": 163840,
+      "inputCost": 0.28,
+      "cacheReadCost": 0.06,
+      "outputCost": 0.38,
+      "speedTokensPerSecond": 95,
+      "reasoning": false
+    },
+    {
+      "id": "mimo-v2.5-pro",
+      "quantization": "Q4_0",
+      "context": 1000000,
+      "output": 131072,
+      "inputCost": 0.5,
+      "cacheReadCost": 0.1,
+      "outputCost": 1.5,
+      "speedTokensPerSecond": 44,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "mimo-v2.5-pro-precision",
+      "quantization": "Q8_0",
+      "context": 1000000,
+      "output": 131072,
+      "inputCost": 0.8,
+      "cacheReadCost": 0.16,
+      "outputCost": 2.5,
+      "speedTokensPerSecond": 60,
+      "requestMultiplier": 2,
+      "reasoning": true,
+      "defaultReasoningEffort": "high"
+    },
+    {
+      "id": "glm-5.1",
+      "quantization": "Q6_K",
+      "context": 202752,
+      "output": 202752,
+      "inputCost": 0.45,
+      "cacheReadCost": 0.09,
+      "outputCost": 2.1,
+      "speedTokensPerSecond": 24,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "glm-5.1-precision",
+      "quantization": "Q8_0",
+      "context": 202752,
+      "output": 202752,
+      "inputCost": 0.75,
+      "cacheReadCost": 0.15,
+      "outputCost": 2.9,
+      "speedTokensPerSecond": 62,
+      "requestMultiplier": 2,
+      "status": "beta",
+      "reasoning": true,
+      "defaultReasoningEffort": "high"
+    },
+    {
+      "id": "greg",
+      "quantization": "greg",
+      "context": 229376,
+      "output": 229376,
+      "inputCost": 0.1,
+      "cacheReadCost": 0.02,
+      "outputCost": 0.2,
+      "speedTokensPerSecond": 165,
+      "requestMultiplier": 0.5,
+      "vision": true,
+      "reasoning": false
+    },
+    {
+      "id": "kimi-k2.6",
+      "quantization": "Q3_K_L",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.5,
+      "cacheReadCost": 0.1,
+      "outputCost": 1.99,
+      "speedTokensPerSecond": 22,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "kimi-k2.6-precision",
+      "quantization": "int4",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.55,
+      "cacheReadCost": 0.11,
+      "outputCost": 2.7,
+      "speedTokensPerSecond": 21,
+      "requestMultiplier": 2,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "high"
+    },
+    {
+      "id": "kimi-k2.5",
+      "quantization": "Q4_K_M",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.35,
+      "cacheReadCost": 0.07,
+      "outputCost": 1.7,
+      "speedTokensPerSecond": 45,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "kimi-k2.5-lightning",
+      "quantization": "530b-int4",
+      "context": 131072,
+      "output": 32768,
+      "inputCost": 1,
+      "cacheReadCost": 0.2,
+      "outputCost": 3,
+      "speedTokensPerSecond": 170,
+      "vision": true,
+      "status": "beta",
+      "reasoning": true,
+      "defaultReasoningEffort": "low"
+    },
+    {
+      "id": "glm-5",
+      "quantization": "Q4_0",
+      "context": 202752,
+      "output": 202752,
+      "inputCost": 0.48,
+      "cacheReadCost": 0.1,
+      "outputCost": 1.9,
+      "speedTokensPerSecond": 53,
+      "reasoning": false
+    },
+    {
+      "id": "glm-4.7",
+      "quantization": "Q8_0",
+      "context": 202752,
+      "output": 202752,
+      "inputCost": 0.25,
+      "cacheReadCost": 0.05,
+      "outputCost": 1.1,
+      "speedTokensPerSecond": 60,
+      "reasoning": false
+    },
+    {
+      "id": "glm-4.7-flash",
+      "quantization": "fp8",
+      "context": 202752,
+      "output": 131072,
+      "inputCost": 0.04,
+      "cacheReadCost": 0.008,
+      "outputCost": 0.3,
+      "speedTokensPerSecond": 100,
+      "requestMultiplier": 0.5,
+      "reasoning": false
+    },
+    {
+      "id": "gemma-4-31b-it",
+      "quantization": "Q4_0",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.1,
+      "cacheReadCost": 0.02,
+      "outputCost": 0.3,
+      "speedTokensPerSecond": 110,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "low"
+    },
+    {
+      "id": "minimax-m2.5",
+      "quantization": "awq",
+      "context": 204800,
+      "output": 131072,
+      "inputCost": 0.11,
+      "cacheReadCost": 0.02,
+      "outputCost": 0.95,
+      "speedTokensPerSecond": 46,
+      "requestMultiplier": 0.75,
+      "reasoning": false
+    },
+    {
+      "id": "qwen3.6-27b",
+      "quantization": "Q4_0",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.2,
+      "cacheReadCost": 0.04,
+      "outputCost": 1.5,
+      "speedTokensPerSecond": 51,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "qwen3.5-397b-a17b",
+      "quantization": "Q4_0",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.35,
+      "cacheReadCost": 0.07,
+      "outputCost": 1.75,
+      "speedTokensPerSecond": 67,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "medium"
+    },
+    {
+      "id": "qwen3.5-9b",
+      "quantization": "fp8",
+      "context": 262144,
+      "output": 262144,
+      "inputCost": 0.04,
+      "cacheReadCost": 0.008,
+      "outputCost": 0.15,
+      "speedTokensPerSecond": 182,
+      "requestMultiplier": 0.5,
+      "vision": true,
+      "reasoning": true,
+      "defaultReasoningEffort": "low"
+    }
+  ]
+}

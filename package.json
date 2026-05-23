@@ -1,0 +1,17 @@
+{
+  "name": "aegislane",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Guarded autonomous developer loop for OpenCode and Kilo Code.",
+  "license": "MIT",
+  "scripts": {
+    "check": "node --check aegislane/runtime.mjs && node --check aegislane/cli.mjs && node --check .kilo/plugin/aegislane.js && node --check scripts/install-aegislane-global.mjs && node --check scripts/install-aegislane-kilo-global.mjs",
+    "validate": "node aegislane/cli.mjs validate-memory && node aegislane/cli.mjs preflight --allow-existing-lock && node aegislane/cli.mjs diff-policy",
+    "test": "node aegislane/tests/lane-ledger.test.mjs",
+    "install:opencode": "node scripts/install-aegislane-global.mjs",
+    "install:kilo": "node scripts/install-aegislane-kilo-global.mjs",
+    "models": "node aegislane/cli.mjs read-models",
+    "status": "node aegislane/cli.mjs status"
+  }
+}

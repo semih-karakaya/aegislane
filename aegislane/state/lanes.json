@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "lanes": [
+    {
+      "laneId": "lane-kilo",
+      "waveId": "verify",
+      "targetPaths": [
+        ".kilo/rules/aegislane.md"
+      ],
+      "status": "verified",
+      "subagent": "aegislane-implementer",
+      "task": "verify",
+      "sessionID": null,
+      "agent": "aegislane",
+      "createdAt": "2026-05-23T19:23:16.383Z",
+      "updatedAt": "2026-05-23T19:23:16.384Z"
+    }
+  ]
+}

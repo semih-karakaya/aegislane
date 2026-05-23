@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "activePhase": "02-active-development",
+  "status": "in_progress",
+  "allowedPaths": [
+    ".gitignore",
+    "README.md",
+    "LICENSE",
+    "package.json",
+    "opencode.json",
+    "kilo.jsonc",
+    ".opencode/**",
+    ".kilo/**",
+    "aegislane/**",
+    "scripts/**",
+    "src/**",
+    "tests/**"
+  ],
+  "protectedPaths": [
+    ".env",
+    ".env.*",
+    "**/*.key",
+    "**/*.pem",
+    "**/*.p12",
+    "**/*.mobileprovision",
+    "**/*secret*",
+    "**/*credential*",
+    "**/GoogleService-Info.plist",
+    "**/google-services.json",
+    "ios/Runner/GoogleService-Info.plist",
+    "android/app/google-services.json",
+    "**/*api-key*",
+    "**/*apikey*",
+    "**/*token*"
+  ],
+  "requiredChecks": [],
+  "maxFilesChanged": 8,
+  "maxLinesChanged": 500,
+  "maxSafeStepMinutes": 90,
+  "promptIntake": {
+    "enabled": true,
+    "sourceOfTruth": "user_prompt",
+    "currentJsonRole": "defaults_and_guardrails",
+    "inferPhase": true,
+    "inferTargetPaths": true,
+    "inferChecks": true,
+    "requireManualCurrentJsonEdit": false
+  },
+  "skillDiscovery": {
+    "enabled": true,
+    "loadRequiredEveryRun": true,
+    "requiredSkills": [
+      "aegislane-skill-finder",
+      "find-skills",
+      "karpathy-guidelines"
+    ],
+    "opportunisticSkills": [
+      "aegislane-grill-me",
+      "brainstorming",
+      "writing-plans",
+      "executing-plans",
+      "systematic-debugging",
+      "test-driven-development",
+      "verification-before-completion",
+      "requesting-code-review",
+      "using-git-worktrees",
+      "github",
+      "gh-fix-ci",
+      "yeet",
+      "supabase",
+      "frontend-design",
+      "design-review"
+    ],
+    "searchWhenMissing": true,
+    "autoInstall": {
+      "enabled": true,
+      "global": true,
+      "maxInstallsPerRun": 3,
+      "minInstalls": 1000,
+      "requireTrustedSource": true
+    }
+  },
+  "questioning": {
+    "enabled": true,
+    "style": "superpowers-grill",
+    "command": "/aegislane-grill",
+    "timing": "end_of_planning_before_implementation",
+    "askBeforeImplementation": true,
+    "preferAfterReadOnlyContext": true,
+    "oneQuestionAtATime": true,
+    "maxQuestions": 7,
+    "requireAnswersFor": [
+      "ambiguous task",
+      "new feature",
+      "architecture change",
+      "auth payment database infra or API boundary",
+      "unclear acceptance criteria",
+      "unclear target paths",
+      "risky or irreversible work"
+    ],
+    "skipWhen": [
+      "the task is a tiny read-only answer",
+      "the user explicitly says no questions",
+      "all acceptance criteria and target paths are already clear"
+    ]
+  },
+  "parallelWork": {
+    "enabled": true,
+    "maxReadOnlySubagents": 3,
+    "maxImplementers": 2,
+    "requireDisjointPaths": true,
+    "reviewAfterEachImplementer": true,
+    "testAfterEachImplementer": true,
+    "diffPolicyAfterEachImplementer": true
+  },
+  "pullRequest": {
+    "enabled": true,
+    "command": "/aegislane-pr",
+    "strategy": "checkpoint",
+    "defaultDraft": true,
+    "requireExplicitCommand": true,
+    "requireUserScopeConfirmation": true,
+    "requirePassingChecks": true,
+    "requireDiffPolicyPass": true,
+    "requireCleanLaneLedger": true,
+    "branchPrefix": "aegislane/",
+    "titlePrefix": "[aegislane]",
+    "recommendAfterReports": 3,
+    "maxFilesPerPr": 12,
+    "maxLinesPerPr": 800
+  },
+  "allowAutoCommit": false,
+  "allowAutoPush": false,
+  "allowAutoDeploy": false
+}

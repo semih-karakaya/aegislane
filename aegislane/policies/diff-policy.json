@@ -1,0 +1,30 @@
+{
+  "maxFilesChanged": 8,
+  "maxLinesChanged": 500,
+  "forbiddenPatterns": [
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "PRIVATE_KEY",
+    "SECRET_ACCESS_KEY",
+    "REVENUECAT_SECRET",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "API_SECRET",
+    "CLIENT_SECRET",
+    "DATABASE_URL",
+    "JWT_SECRET",
+    "CROFAI_API_KEY",
+    "nahcrof_"
+  ],
+  "forbiddenFileGlobs": [
+    ".env",
+    ".env.*",
+    "**/*.key",
+    "**/*.pem",
+    "**/*.p12",
+    "**/*.mobileprovision",
+    "**/GoogleService-Info.plist",
+    "**/google-services.json",
+    "**/*api-key*",
+    "**/*apikey*",
+    "**/*token*"
+  ]
+}

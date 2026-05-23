@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "defaultStrategy": "auto",
+  "subagents": [
+    {
+      "id": "explorer",
+      "displayName": "AegisLane Explorer",
+      "opencodeAgent": "aegislane-explorer",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-explorer",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "readonly",
+      "when": [
+        "before implementation",
+        "when files are unknown",
+        "when active phase scope is unclear"
+      ],
+      "responsibilities": [
+        "map relevant files",
+        "find existing patterns",
+        "identify likely affected code",
+        "do not modify files"
+      ],
+      "parallelSafe": true,
+      "reasoningEffort": "medium",
+      "textVerbosity": "low",
+      "steps": 14
+    },
+    {
+      "id": "architect",
+      "displayName": "AegisLane Architect",
+      "opencodeAgent": "aegislane-architect",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-architect",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "readonly",
+      "when": [
+        "before non-trivial implementation",
+        "when architecture or database or API boundaries are involved"
+      ],
+      "responsibilities": [
+        "propose smallest safe design",
+        "identify coupling",
+        "avoid large refactors",
+        "do not modify files"
+      ],
+      "parallelSafe": true,
+      "reasoningEffort": "high",
+      "textVerbosity": "low",
+      "steps": 14
+    },
+    {
+      "id": "implementer",
+      "displayName": "AegisLane Implementer",
+      "opencodeAgent": "aegislane-implementer",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-implementer",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "guarded-write",
+      "when": [
+        "when one safe implementation step is required",
+        "after exploration and architecture context are sufficient",
+        "never before lock, phase, allowed paths, and protected paths are known"
+      ],
+      "responsibilities": [
+        "execute exactly one delegated implementation step",
+        "modify only allowed paths",
+        "never modify protected paths",
+        "stop instead of broadening scope",
+        "do not invoke other subagents"
+      ],
+      "parallelSafe": "only with disjoint targetPaths and after-implementer gates",
+      "targetPathsRequired": true,
+      "afterEachGate": [
+        "aegislane-reviewer",
+        "aegislane-tester when checks exist or testAfterEachImplementer is true",
+        "prompt-inferred requiredChecks plus current.json defaults",
+        "aegislane_diff_policy",
+        "primary verification"
+      ],
+      "reasoningEffort": "high",
+      "textVerbosity": "low",
+      "steps": 32
+    },
+    {
+      "id": "reviewer",
+      "displayName": "AegisLane Reviewer",
+      "opencodeAgent": "aegislane-reviewer",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-reviewer",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "readonly",
+      "when": [
+        "after implementation",
+        "after every implementer lane",
+        "before final report"
+      ],
+      "responsibilities": [
+        "review diff",
+        "find scope creep",
+        "find protected path violations",
+        "find risky changes",
+        "do not modify files"
+      ],
+      "parallelSafe": true,
+      "reasoningEffort": "high",
+      "textVerbosity": "low",
+      "steps": 14
+    },
+    {
+      "id": "tester",
+      "displayName": "AegisLane Tester",
+      "opencodeAgent": "aegislane-tester",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-tester",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "readonly",
+      "when": [
+        "after implementation",
+        "after every implementer lane when configured",
+        "when requiredChecks exist"
+      ],
+      "responsibilities": [
+        "recommend checks",
+        "interpret failing tests",
+        "identify whether failures were caused by current diff",
+        "do not modify files"
+      ],
+      "parallelSafe": true,
+      "reasoningEffort": "high",
+      "textVerbosity": "low",
+      "steps": 14
+    },
+    {
+      "id": "docs",
+      "displayName": "AegisLane Docs Scout",
+      "opencodeAgent": "aegislane-docs",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-docs",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "readonly",
+      "when": [
+        "when external library behavior is uncertain",
+        "when OpenCode API/plugin syntax is uncertain",
+        "when dependency documentation is needed"
+      ],
+      "responsibilities": [
+        "read official docs",
+        "summarize current API usage",
+        "cite source URLs in report if possible",
+        "do not modify files"
+      ],
+      "parallelSafe": true,
+      "reasoningEffort": "medium",
+      "textVerbosity": "low",
+      "steps": 16
+    },
+    {
+      "id": "publisher",
+      "displayName": "AegisLane Publisher",
+      "opencodeAgent": "aegislane-publisher",
+      "opencodeMode": "subagent",
+      "kiloAgent": "aegislane-publisher",
+      "kiloMode": "subagent",
+      "model": "openai/gpt-5.5",
+      "enabled": true,
+      "mode": "guarded-publish",
+      "when": [
+        "only when /aegislane-pr is explicitly requested",
+        "after diff policy passes",
+        "after required checks pass or the user explicitly accepts documented missing checks"
+      ],
+      "responsibilities": [
+        "confirm intended PR scope",
+        "stage only confirmed files",
+        "commit with a concise message",
+        "push the current branch or a new aegislane branch",
+        "open a draft pull request",
+        "never merge, deploy, or mark ready for review without explicit user request"
+      ],
+      "parallelSafe": false,
+      "reasoningEffort": "high",
+      "textVerbosity": "low",
+      "steps": 20
+    }
+  ]
+}

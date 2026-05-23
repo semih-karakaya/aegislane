@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "enabled": true,
+  "loadRequiredEveryRun": true,
+  "requiredSkills": [
+    "aegislane-skill-finder",
+    "find-skills",
+    "karpathy-guidelines"
+  ],
+  "opportunisticSkills": [
+    "aegislane-grill-me",
+    "brainstorming",
+    "writing-plans",
+    "executing-plans",
+    "systematic-debugging",
+    "test-driven-development",
+    "verification-before-completion",
+    "requesting-code-review",
+    "using-git-worktrees",
+    "github",
+    "gh-fix-ci",
+    "yeet",
+    "supabase",
+    "frontend-design",
+    "design-review"
+  ],
+  "searchWhenMissing": true,
+  "searchQueries": {
+    "frontend": "frontend design react nextjs accessibility",
+    "tests": "testing jest playwright e2e",
+    "debugging": "debugging systematic tdd verification",
+    "security": "security code review",
+    "github": "github pull request ci review",
+    "database": "postgres supabase database",
+    "mobile": "ios swiftui expo react native flutter",
+    "docs": "documentation api docs"
+  },
+  "autoInstall": {
+    "enabled": true,
+    "global": true,
+    "maxInstallsPerRun": 3,
+    "minInstalls": 1000,
+    "requireTrustedSource": true,
+    "allowedSources": [
+      "openai/skills",
+      "obra/superpowers",
+      "multica-ai/andrej-karpathy-skills",
+      "vercel-labs/agent-skills",
+      "anthropics/knowledge-work-plugins",
+      "microsoft",
+      "github.com/openai/skills",
+      "github.com/multica-ai/andrej-karpathy-skills",
+      "github.com/vercel-labs/agent-skills"
+    ]
+  },
+  "recordInReports": true
+}

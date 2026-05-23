@@ -1,0 +1,1088 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openai/gpt-5.5",
+  "small_model": "openai/gpt-5.5",
+  "default_agent": "aegislane",
+  "skills": {
+    "paths": [
+      ".opencode/skills",
+      "~/.config/opencode/skills",
+      "~/.agents/skills",
+      "~/.codex/skills",
+      "~/.codex/skills/.system"
+    ]
+  },
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "gh_grep": {
+      "type": "remote",
+      "url": "https://mcp.grep.app",
+      "enabled": true
+    }
+  },
+  "permission": {
+    "skill": {
+      "*": "allow"
+    },
+    "bash": {
+      "npx skills find*": "allow",
+      "npx skills check*": "allow",
+      "npx skills add*": "allow"
+    }
+  },
+  "provider": {
+    "openai": {
+      "models": {
+        "gpt-5.5": {
+          "options": {
+            "reasoningEffort": "medium",
+            "textVerbosity": "low",
+            "reasoningSummary": "auto",
+            "include": [
+              "reasoning.encrypted_content"
+            ]
+          },
+          "variants": {
+            "medium": {
+              "reasoningEffort": "medium",
+              "textVerbosity": "low",
+              "reasoningSummary": "auto"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "textVerbosity": "low",
+              "reasoningSummary": "auto"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "textVerbosity": "low",
+              "reasoningSummary": "auto"
+            }
+          }
+        }
+      }
+    },
+    "crof": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "CrofAI",
+      "options": {
+        "baseURL": "https://crof.ai/v1",
+        "apiKey": "{file:./aegislane/logs/tmp/crofai-api-key}"
+      },
+      "models": {
+        "deepseek-v4-pro": {
+          "name": "DeepSeek: DeepSeek V4 Pro",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.4,
+            "cache_read": 0.003,
+            "output": 0.85
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          }
+        },
+        "deepseek-v4-pro-precision": {
+          "name": "DeepSeek: DeepSeek V4 Pro (Precision)",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 1.25,
+            "cache_read": 0.1,
+            "output": 2.5
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          }
+        },
+        "deepseek-v4-flash": {
+          "name": "DeepSeek: DeepSeek V4 Flash",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.12,
+            "cache_read": 0.02,
+            "output": 0.21
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          }
+        },
+        "deepseek-v3.2": {
+          "name": "DeepSeek: DeepSeek V3.2",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.28,
+            "cache_read": 0.06,
+            "output": 0.38
+          },
+          "limit": {
+            "context": 163840,
+            "output": 163840
+          }
+        },
+        "mimo-v2.5-pro": {
+          "name": "Xiaomi: MiMo-V2.5-Pro",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.5,
+            "cache_read": 0.1,
+            "output": 1.5
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          }
+        },
+        "mimo-v2.5-pro-precision": {
+          "name": "Xiaomi: MiMo-V2.5-Pro (Precision)",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.8,
+            "cache_read": 0.16,
+            "output": 2.5
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          }
+        },
+        "glm-5.1": {
+          "name": "Z.ai: GLM 5.1",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.45,
+            "cache_read": 0.09,
+            "output": 2.1
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          }
+        },
+        "glm-5.1-precision": {
+          "name": "Z.ai: GLM 5.1 (Precision)",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.75,
+            "cache_read": 0.15,
+            "output": 2.9
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          },
+          "experimental": true,
+          "status": "beta"
+        },
+        "greg": {
+          "name": "Experiment!: Greg",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.1,
+            "cache_read": 0.02,
+            "output": 0.2
+          },
+          "limit": {
+            "context": 229376,
+            "output": 229376
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.6": {
+          "name": "MoonshotAI: Kimi K2.6",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.5,
+            "cache_read": 0.1,
+            "output": 1.99
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.6-precision": {
+          "name": "MoonshotAI: Kimi K2.6 (Precision)",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.55,
+            "cache_read": 0.11,
+            "output": 2.7
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.5": {
+          "name": "MoonshotAI: Kimi K2.5",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.35,
+            "cache_read": 0.07,
+            "output": 1.7
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.5-lightning": {
+          "name": "MoonshotAI: Kimi K2.5 (Lightning)",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 1,
+            "cache_read": 0.2,
+            "output": 3
+          },
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "experimental": true,
+          "status": "beta"
+        },
+        "glm-5": {
+          "name": "Z.ai: GLM 5",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.48,
+            "cache_read": 0.1,
+            "output": 1.9
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          }
+        },
+        "glm-4.7": {
+          "name": "Z.AI: GLM 4.7",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.25,
+            "cache_read": 0.05,
+            "output": 1.1
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          }
+        },
+        "glm-4.7-flash": {
+          "name": "Z.AI: GLM 4.7 Flash",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.04,
+            "cache_read": 0.008,
+            "output": 0.3
+          },
+          "limit": {
+            "context": 202752,
+            "output": 131072
+          }
+        },
+        "gemma-4-31b-it": {
+          "name": "Google: Gemma 4 31B",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.1,
+            "cache_read": 0.02,
+            "output": 0.3
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "minimax-m2.5": {
+          "name": "MiniMax: MiniMax M2.5",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.11,
+            "cache_read": 0.02,
+            "output": 0.95
+          },
+          "limit": {
+            "context": 204800,
+            "output": 131072
+          }
+        },
+        "qwen3.6-27b": {
+          "name": "Qwen: Qwen3.6 27B",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.2,
+            "cache_read": 0.04,
+            "output": 1.5
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "qwen3.5-397b-a17b": {
+          "name": "Qwen: Qwen3.5 397B A17B",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.35,
+            "cache_read": 0.07,
+            "output": 1.75
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "qwen3.5-9b": {
+          "name": "Qwen: Qwen3.5 9B",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.04,
+            "cache_read": 0.008,
+            "output": 0.15
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    "crof-beta": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "CrofAI Beta",
+      "options": {
+        "baseURL": "https://beta.crof.ai/v1",
+        "apiKey": "{file:./aegislane/logs/tmp/crofai-api-key}"
+      },
+      "models": {
+        "deepseek-v4-pro": {
+          "name": "CrofAI Beta: deepseek-v4-pro",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.4,
+            "cache_read": 0.003,
+            "output": 0.85
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          }
+        },
+        "deepseek-v4-pro-precision": {
+          "name": "CrofAI Beta: deepseek-v4-pro-precision",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 1.25,
+            "cache_read": 0.1,
+            "output": 2.5
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          }
+        },
+        "deepseek-v4-flash": {
+          "name": "CrofAI Beta: deepseek-v4-flash",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.12,
+            "cache_read": 0.02,
+            "output": 0.21
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          }
+        },
+        "deepseek-v3.2": {
+          "name": "CrofAI Beta: deepseek-v3.2",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.28,
+            "cache_read": 0.06,
+            "output": 0.38
+          },
+          "limit": {
+            "context": 163840,
+            "output": 163840
+          }
+        },
+        "mimo-v2.5-pro": {
+          "name": "CrofAI Beta: mimo-v2.5-pro",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.5,
+            "cache_read": 0.1,
+            "output": 1.5
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          }
+        },
+        "mimo-v2.5-pro-precision": {
+          "name": "CrofAI Beta: mimo-v2.5-pro-precision",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.8,
+            "cache_read": 0.16,
+            "output": 2.5
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 131072
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          }
+        },
+        "glm-5.1": {
+          "name": "CrofAI Beta: glm-5.1",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.45,
+            "cache_read": 0.09,
+            "output": 2.1
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          }
+        },
+        "glm-5.1-precision": {
+          "name": "CrofAI Beta: glm-5.1-precision",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.75,
+            "cache_read": 0.15,
+            "output": 2.9
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          },
+          "experimental": true,
+          "status": "beta"
+        },
+        "greg": {
+          "name": "CrofAI Beta: greg",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.1,
+            "cache_read": 0.02,
+            "output": 0.2
+          },
+          "limit": {
+            "context": 229376,
+            "output": 229376
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.6": {
+          "name": "CrofAI Beta: kimi-k2.6",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.5,
+            "cache_read": 0.1,
+            "output": 1.99
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.6-precision": {
+          "name": "CrofAI Beta: kimi-k2.6-precision",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.55,
+            "cache_read": 0.11,
+            "output": 2.7
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "high"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.5": {
+          "name": "CrofAI Beta: kimi-k2.5",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.35,
+            "cache_read": 0.07,
+            "output": 1.7
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "kimi-k2.5-lightning": {
+          "name": "CrofAI Beta: kimi-k2.5-lightning",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 1,
+            "cache_read": 0.2,
+            "output": 3
+          },
+          "limit": {
+            "context": 131072,
+            "output": 32768
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "experimental": true,
+          "status": "beta"
+        },
+        "glm-5": {
+          "name": "CrofAI Beta: glm-5",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.48,
+            "cache_read": 0.1,
+            "output": 1.9
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          }
+        },
+        "glm-4.7": {
+          "name": "CrofAI Beta: glm-4.7",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.25,
+            "cache_read": 0.05,
+            "output": 1.1
+          },
+          "limit": {
+            "context": 202752,
+            "output": 202752
+          }
+        },
+        "glm-4.7-flash": {
+          "name": "CrofAI Beta: glm-4.7-flash",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.04,
+            "cache_read": 0.008,
+            "output": 0.3
+          },
+          "limit": {
+            "context": 202752,
+            "output": 131072
+          }
+        },
+        "gemma-4-31b-it": {
+          "name": "CrofAI Beta: gemma-4-31b-it",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.1,
+            "cache_read": 0.02,
+            "output": 0.3
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "minimax-m2.5": {
+          "name": "CrofAI Beta: minimax-m2.5",
+          "reasoning": false,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.11,
+            "cache_read": 0.02,
+            "output": 0.95
+          },
+          "limit": {
+            "context": 204800,
+            "output": 131072
+          }
+        },
+        "qwen3.6-27b": {
+          "name": "CrofAI Beta: qwen3.6-27b",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.2,
+            "cache_read": 0.04,
+            "output": 1.5
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "qwen3.5-397b-a17b": {
+          "name": "CrofAI Beta: qwen3.5-397b-a17b",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.35,
+            "cache_read": 0.07,
+            "output": 1.75
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "medium"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "qwen3.5-9b": {
+          "name": "CrofAI Beta: qwen3.5-9b",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "cost": {
+            "input": 0.04,
+            "cache_read": 0.008,
+            "output": 0.15
+          },
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "options": {
+            "reasoning_effort": "low"
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

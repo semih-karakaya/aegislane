@@ -1,0 +1,19 @@
+{
+  "protectedPaths": [
+    ".env",
+    ".env.*",
+    "**/*.key",
+    "**/*.pem",
+    "**/*.p12",
+    "**/*.mobileprovision",
+    "**/*secret*",
+    "**/*credential*",
+    "**/GoogleService-Info.plist",
+    "**/google-services.json",
+    "ios/Runner/GoogleService-Info.plist",
+    "android/app/google-services.json",
+    "**/*api-key*",
+    "**/*apikey*",
+    "**/*token*"
+  ]
+}
