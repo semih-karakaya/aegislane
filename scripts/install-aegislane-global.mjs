@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -58,6 +59,10 @@ function read(file) {
   return fs.readFileSync(file, "utf8");
 }
 
+function readJson(file) {
+  return JSON.parse(read(file));
+}
+
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
@@ -94,6 +99,32 @@ function globalizeRuntimeImport(content) {
   return content.replaceAll("../../aegislane/runtime.mjs", "../aegislane/runtime.mjs");
 }
 
+function gitValue(args) {
+  try {
+    return execFileSync("git", args, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function installMetadata() {
+  const packageJson = readJson(src("package.json"));
+  return {
+    name: "aegislane",
+    host: "opencode",
+    version: packageJson.version,
+    source: process.env.AEGISLANE_UPDATE_SOURCE || gitValue(["remote", "get-url", "origin"]),
+    ref: process.env.AEGISLANE_UPDATE_REF || gitValue(["branch", "--show-current"]) || "detached",
+    commit: process.env.AEGISLANE_UPDATE_COMMIT || gitValue(["rev-parse", "HEAD"]),
+    installedAt: new Date().toISOString(),
+    installerVersion: 1,
+  };
+}
+
 const results = [];
 
 for (const dir of ["agents", "commands", "plugins", "tools", "aegislane"]) {
@@ -123,6 +154,9 @@ results.push(installText(".opencode/plugins/aegislane.ts", "plugins/aegislane.ts
 results.push(installText(".opencode/tools/aegislane.ts", "tools/aegislane.ts", globalizeRuntimeImport));
 results.push(installText("aegislane/runtime.mjs", "aegislane/runtime.mjs"));
 results.push(installText("aegislane/cli.mjs", "aegislane/cli.mjs"));
+results.push(installText("scripts/update-aegislane-global.mjs", "aegislane/update.mjs"));
+results.push(installText("scripts/uninstall-aegislane-global.mjs", "aegislane/uninstall.mjs"));
+results.push(writeChanged(dest("aegislane/install.json"), `${JSON.stringify(installMetadata(), null, 2)}\n`));
 
 results.push(
   installJson("opencode.jsonc", (config) => ({

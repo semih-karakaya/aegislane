@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -78,6 +79,32 @@ function copyDirFiles(sourceDir, targetDir, results) {
       copyIfChanged(source, target, results);
     }
   }
+}
+
+function gitValue(args) {
+  try {
+    return execFileSync("git", args, {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function installMetadata() {
+  const packageJson = JSON.parse(fs.readFileSync(file(ROOT, "package.json"), "utf8"));
+  return {
+    name: "aegislane",
+    host: "kilo",
+    version: packageJson.version,
+    source: process.env.AEGISLANE_UPDATE_SOURCE || gitValue(["remote", "get-url", "origin"]),
+    ref: process.env.AEGISLANE_UPDATE_REF || gitValue(["branch", "--show-current"]) || "detached",
+    commit: process.env.AEGISLANE_UPDATE_COMMIT || gitValue(["rev-parse", "HEAD"]),
+    installedAt: new Date().toISOString(),
+    installerVersion: 1,
+  };
 }
 
 function mergeUnique(existing = [], additions = []) {
@@ -179,6 +206,9 @@ function main() {
   mergeKiloPackage(results);
   copyIfChanged(file(ROOT, "aegislane", "runtime.mjs"), file(KILO_CONFIG_DIR, "aegislane", "runtime.mjs"), results);
   copyIfChanged(file(ROOT, "aegislane", "cli.mjs"), file(KILO_CONFIG_DIR, "aegislane", "cli.mjs"), results);
+  copyIfChanged(file(ROOT, "scripts", "update-aegislane-global.mjs"), file(KILO_CONFIG_DIR, "aegislane", "update.mjs"), results);
+  copyIfChanged(file(ROOT, "scripts", "uninstall-aegislane-global.mjs"), file(KILO_CONFIG_DIR, "aegislane", "uninstall.mjs"), results);
+  writeJsonc(file(KILO_CONFIG_DIR, "aegislane", "install.json"), installMetadata(), results);
   mergeKiloConfig(results);
 
   process.stdout.write(

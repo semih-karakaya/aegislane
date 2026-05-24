@@ -45,9 +45,8 @@ lane ledger prevents parallel work from colliding on the same target paths.
 ### Quick Start
 
 ```bash
-npm install
-npm run install:opencode
-npm run install:kilo
+npm ci
+npm run install:all
 npm run check
 npm run validate
 npm test
@@ -73,28 +72,70 @@ Optional commands:
 /aegislane-pr publish this verified checkpoint
 ```
 
-### Clean Install From GitHub
+### Install From GitHub
 
-Use this when you want to delete an existing global AegisLane install and rebuild it
-from the public repository:
+Use this for a first install from the public repository:
 
 ```bash
-rm -rf /tmp/aegislane-clean
-git clone https://github.com/semih-karakaya/aegislane.git /tmp/aegislane-clean
-cd /tmp/aegislane-clean
+git clone https://github.com/semih-karakaya/aegislane.git ~/.local/share/aegislane/source
+cd ~/.local/share/aegislane/source
 npm ci
-
-# Optional reset: removes only AegisLane-installed global files.
-npm run uninstall:all
-
 npm run install:all
-npm run check
-npm run validate
-npm test
 ```
 
 Restart OpenCode or VS Code/Kilo Code after install. Select the mode/agent named
 `aegislane`, then give it a normal prompt.
+
+### Update Existing Install
+
+After the first install, AegisLane stores version metadata and a self-contained
+updater in the host config directory.
+
+Check what is installed and what GitHub currently exposes:
+
+```bash
+node ~/.config/opencode/aegislane/update.mjs status
+```
+
+Update both OpenCode and Kilo Code from GitHub:
+
+```bash
+node ~/.config/opencode/aegislane/update.mjs all
+```
+
+You can also update from a repo checkout:
+
+```bash
+cd ~/.local/share/aegislane/source
+git pull
+npm ci
+npm run update:status
+npm run update:all
+```
+
+Pin a branch or tag when needed:
+
+```bash
+npm run update:all -- --ref main
+npm run update:all -- --ref v0.2.0
+```
+
+Installed metadata is written to:
+
+```text
+~/.config/opencode/aegislane/install.json
+~/.config/kilo/aegislane/install.json
+```
+
+### Reset Install
+
+Use this only when you want to remove the installed AegisLane files and reinstall
+them. It does not delete unrelated OpenCode or Kilo Code config.
+
+```bash
+npm run uninstall:all
+npm run install:all
+```
 
 ## For Humans
 
@@ -166,6 +207,13 @@ Remove the global AegisLane files without touching unrelated host config:
 
 ```bash
 npm run uninstall:all
+```
+
+Check and apply updates from GitHub:
+
+```bash
+npm run update:status
+npm run update:all
 ```
 
 Restart the relevant app after installation, then select the agent/mode named:
