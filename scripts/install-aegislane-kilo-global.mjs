@@ -100,6 +100,7 @@ function installMetadata() {
     host: "kilo",
     version: packageJson.version,
     source: process.env.AEGISLANE_UPDATE_SOURCE || gitValue(["remote", "get-url", "origin"]),
+    sourcePath: ROOT,
     ref: process.env.AEGISLANE_UPDATE_REF || gitValue(["branch", "--show-current"]) || "detached",
     commit: process.env.AEGISLANE_UPDATE_COMMIT || gitValue(["rev-parse", "HEAD"]),
     installedAt: new Date().toISOString(),

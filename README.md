@@ -77,8 +77,9 @@ Optional commands:
 Use this for a first install from the public repository:
 
 ```bash
-git clone https://github.com/semih-karakaya/aegislane.git ~/.local/share/aegislane/source
-cd ~/.local/share/aegislane/source
+mkdir -p ~/repos
+git clone https://github.com/semih-karakaya/aegislane.git ~/repos/aegislane
+cd ~/repos/aegislane
 npm ci
 npm run install:all
 ```
@@ -106,7 +107,7 @@ node ~/.config/opencode/aegislane/update.mjs all
 You can also update from a repo checkout:
 
 ```bash
-cd ~/.local/share/aegislane/source
+cd ~/repos/aegislane
 git pull
 npm ci
 npm run update:status
@@ -117,7 +118,7 @@ Pin a branch or tag when needed:
 
 ```bash
 npm run update:all -- --ref main
-npm run update:all -- --ref v0.2.1
+npm run update:all -- --ref v0.2.2
 ```
 
 Installed metadata is written to:
@@ -126,6 +127,27 @@ Installed metadata is written to:
 ~/.config/opencode/aegislane/install.json
 ~/.config/kilo/aegislane/install.json
 ```
+
+### Where To Edit
+
+Make source changes in:
+
+```text
+~/repos/aegislane
+```
+
+Then install them into the local OpenCode and Kilo Code config copies:
+
+```bash
+cd ~/repos/aegislane
+npm run check
+npm run validate
+npm test
+npm run install:all
+```
+
+The files under `~/.config/opencode` and `~/.config/kilo` are installed runtime
+copies. Edit the source repo first, then reinstall or push and use the updater.
 
 ### Reset Install
 
