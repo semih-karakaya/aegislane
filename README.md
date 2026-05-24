@@ -73,6 +73,29 @@ Optional commands:
 /aegislane-pr publish this verified checkpoint
 ```
 
+### Clean Install From GitHub
+
+Use this when you want to delete an existing global AegisLane install and rebuild it
+from the public repository:
+
+```bash
+rm -rf /tmp/aegislane-clean
+git clone https://github.com/semih-karakaya/aegislane.git /tmp/aegislane-clean
+cd /tmp/aegislane-clean
+npm install
+
+# Optional reset: removes only AegisLane-installed global files.
+npm run uninstall:all
+
+npm run install:all
+npm run check
+npm run validate
+npm test
+```
+
+Restart OpenCode or VS Code/Kilo Code after install. Select the mode/agent named
+`aegislane`, then give it a normal prompt.
+
 ## For Humans
 
 ### What You Get
@@ -131,6 +154,18 @@ Install AegisLane globally for Kilo Code:
 
 ```bash
 npm run install:kilo
+```
+
+Install both hosts at once:
+
+```bash
+npm run install:all
+```
+
+Remove the global AegisLane files without touching unrelated host config:
+
+```bash
+npm run uninstall:all
 ```
 
 Restart the relevant app after installation, then select the agent/mode named:
