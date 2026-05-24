@@ -13,6 +13,8 @@ permission:
   edit:
     "*": ask
     ".opencode/**": allow
+    "assets": allow
+    "assets/**": allow
     "aegislane/**": allow
     "src/**": allow
     "tests/**": allow

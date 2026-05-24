@@ -157,6 +157,8 @@ export const DEFAULT_CURRENT = {
     "kilo.jsonc",
     ".opencode/**",
     ".kilo/**",
+    "assets",
+    "assets/**",
     "aegislane/**",
     "scripts/**",
     "src/**",

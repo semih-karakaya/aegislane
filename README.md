@@ -1,13 +1,77 @@
 # AegisLane
 
-AegisLane turns OpenCode and Kilo Code into a guarded autonomous development loop.
+<p align="center">
+  <img src="assets/aegislane-hero.png" alt="AegisLane guarded autonomous development lanes" width="100%">
+</p>
 
-It is not only a prompt. This repository contains project-local agents, commands,
-plugins, tools, skills, memory files, policies, installers, and verification scripts.
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
+  <img alt="OpenCode mode" src="https://img.shields.io/badge/OpenCode-mode-00a6ff.svg">
+  <img alt="Kilo Code mode" src="https://img.shields.io/badge/Kilo%20Code-mode-ffb000.svg">
+  <img alt="Guarded autonomous loop" src="https://img.shields.io/badge/agentic%20loop-guarded-29d37d.svg">
+</p>
 
-AegisLane is designed for one job: let an AI coding agent keep moving from a normal
-user prompt, but only in small safe steps with explicit guardrails, protected paths,
-checks, reports, and handoff notes.
+**AegisLane is a guarded autonomous development mode for OpenCode and Kilo Code.**
+
+It gives your coding agent lanes, locks, subagents, policy checks, reports, and a
+clean handoff contract. You type a normal task. AegisLane infers the safe scope,
+delegates the work, checks the diff, and stops after one verified step.
+
+This is not just a prompt pack. The repository ships project-local agents,
+commands, plugins, tools, skills, memory files, policies, installers, and tests.
+
+## The Pitch
+
+Most coding agents are excellent sprinters and unreliable drivers. AegisLane turns
+the session into a controlled delivery lane:
+
+```text
+prompt -> intake -> lock -> explore -> delegate -> implement -> review -> test -> report -> unlock
+```
+
+The primary agent orchestrates. Read-only subagents explore, design, review, test,
+and research docs. A guarded implementer performs exactly one scoped change. The
+lane ledger prevents parallel work from colliding on the same target paths.
+
+### Why It Feels Different
+
+- Select `aegislane` as a mode, then just talk. No mandatory slash command.
+- It asks a sharp grill question only when the prompt is too risky or vague.
+- It reads `subagents.json` and `models.json` every run instead of baking the crew into one giant prompt.
+- It blocks protected paths, secret-looking files, oversized diffs, unsafe bash, and lane conflicts where the host API allows enforcement.
+- It writes reports, shift notes, and JSONL logs so long autonomous runs leave a trail.
+- It supports a guarded `/aegislane-pr` checkpoint for publishing when the diff is actually ready.
+
+### Quick Start
+
+```bash
+npm install
+npm run install:opencode
+npm run install:kilo
+npm run check
+npm run validate
+npm test
+```
+
+Then restart OpenCode or Kilo Code and select:
+
+```text
+aegislane
+```
+
+Now give it one task:
+
+```text
+Update README.md to explain the new install flow and run npm test.
+```
+
+Optional commands:
+
+```text
+/aegislane implement the next safe step
+/aegislane-grill clarify this feature idea
+/aegislane-pr publish this verified checkpoint
+```
 
 ## For Humans
 
@@ -30,6 +94,7 @@ checks, reports, and handoff notes.
 ```text
 .opencode/          OpenCode agents, commands, plugin, tools, and skills
 .kilo/              Kilo Code agents, commands, plugin, rules, and skills
+assets/             README and project presentation assets
 scripts/            Global installers for OpenCode and Kilo Code
 aegislane/          Runtime, CLI, memory, policies, models, and tests
 opencode.json       Project-local OpenCode config
