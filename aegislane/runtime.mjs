@@ -153,6 +153,7 @@ export const DEFAULT_CURRENT = {
     "README.md",
     "LICENSE",
     "package.json",
+    "package-lock.json",
     "opencode.json",
     "kilo.jsonc",
     ".opencode/**",

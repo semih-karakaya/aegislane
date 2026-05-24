@@ -82,7 +82,7 @@ from the public repository:
 rm -rf /tmp/aegislane-clean
 git clone https://github.com/semih-karakaya/aegislane.git /tmp/aegislane-clean
 cd /tmp/aegislane-clean
-npm install
+npm ci
 
 # Optional reset: removes only AegisLane-installed global files.
 npm run uninstall:all
@@ -141,7 +141,7 @@ aegislane/shift-notes/*.md
 Install the project dependencies used for validation:
 
 ```bash
-npm install
+npm ci
 ```
 
 Install AegisLane globally for OpenCode:

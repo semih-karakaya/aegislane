@@ -12,6 +12,7 @@ permission:
   grep: allow
   edit:
     "*": ask
+    "package-lock.json": allow
     ".opencode/**": allow
     "assets": allow
     "assets/**": allow

@@ -16,6 +16,7 @@ permission:
     ".kilo/**": allow
     "opencode.json": allow
     "kilo.jsonc": allow
+    "package-lock.json": allow
     "assets": allow
     "assets/**": allow
     "aegislane/**": allow
