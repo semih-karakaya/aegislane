@@ -73,7 +73,11 @@ function selectedTargets(target) {
 }
 
 function remoteHead(source, ref) {
-  const refs = ref.startsWith("refs/") ? [ref] : [`refs/heads/${ref}`, `refs/tags/${ref}`, ref];
+  const refs = ref.startsWith("refs/tags/")
+    ? [`${ref}^{}`, ref]
+    : ref.startsWith("refs/")
+      ? [ref]
+      : [`refs/heads/${ref}`, `refs/tags/${ref}^{}`, `refs/tags/${ref}`, ref];
   for (const candidate of refs) {
     try {
       const output = git(["ls-remote", source, candidate], process.cwd());

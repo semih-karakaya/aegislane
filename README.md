@@ -117,7 +117,7 @@ Pin a branch or tag when needed:
 
 ```bash
 npm run update:all -- --ref main
-npm run update:all -- --ref v0.2.0
+npm run update:all -- --ref v0.2.1
 ```
 
 Installed metadata is written to:
