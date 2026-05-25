@@ -42,6 +42,90 @@ function payloadFromArgs(args: Record<string, any>) {
   return payload;
 }
 
+function compactCurrent(current: any) {
+  return {
+    version: current.version,
+    activePhase: current.activePhase,
+    status: current.status,
+    limits: {
+      maxFilesChanged: current.maxFilesChanged,
+      maxLinesChanged: current.maxLinesChanged,
+      maxSafeStepMinutes: current.maxSafeStepMinutes,
+    },
+    parallelWork: current.parallelWork,
+    executionProfiles: current.executionProfiles,
+    requiredChecks: current.requiredChecks,
+    policyRefs: {
+      current: "aegislane/state/current.json",
+      protectedPaths: "aegislane/policies/protected-paths.json",
+      diffPolicy: "aegislane/policies/diff-policy.json",
+    },
+  };
+}
+
+function compactPhase(phase: any) {
+  return {
+    activePhase: phase.activePhase,
+    path: phase.path,
+    summary: String(phase.content || "")
+      .split("\n")
+      .filter((line) => /^#|^- /.test(line))
+      .slice(0, 16)
+      .join("\n"),
+  };
+}
+
+function compactSubagents(registry: any) {
+  return {
+    version: registry.version,
+    subagents: (registry.subagents || [])
+      .filter((agent: any) => agent.enabled !== false)
+      .map((agent: any) => ({
+        id: agent.id,
+        opencodeAgent: agent.opencodeAgent,
+        kiloAgent: agent.kiloAgent || agent.opencodeAgent,
+        mode: agent.mode,
+        parallelSafe: agent.parallelSafe,
+        targetPathsRequired: agent.targetPathsRequired,
+        steps: agent.steps,
+      })),
+  };
+}
+
+function compactSkillDiscovery(policy: any) {
+  return {
+    version: policy.version,
+    enabled: policy.enabled,
+    loadRequiredEveryRun: policy.loadRequiredEveryRun,
+    requiredSkills: policy.requiredSkills || [],
+    searchWhenMissing: policy.searchWhenMissing,
+    autoInstall: policy.autoInstall
+      ? {
+          enabled: policy.autoInstall.enabled,
+          maxInstallsPerRun: policy.autoInstall.maxInstallsPerRun,
+          requireTrustedSource: policy.autoInstall.requireTrustedSource,
+        }
+      : undefined,
+  };
+}
+
+function compactModels(models: any) {
+  return {
+    version: models.version,
+    defaults: models.defaults,
+    agents: Object.fromEntries(
+      Object.entries(models.agents || {}).map(([name, config]: [string, any]) => [
+        name,
+        {
+          model: config.model,
+          reasoningEffort: config.reasoningEffort,
+          steps: config.steps,
+        },
+      ]),
+    ),
+  };
+}
+
 export const status = tool({
   description: "Show AegisLane memory, active phase, lock, and enabled subagent status.",
   args: {},
@@ -54,11 +138,13 @@ export const acquire_lock = tool({
   description: "Acquire aegislane/state/run.lock. Fails if another AegisLane run is active.",
   args: {
     task: tool.schema.string().describe("Short task description for the lock metadata.").optional(),
+    executionProfile: tool.schema.string().describe("Optional execution profile, such as fast, standard, or guarded.").optional(),
   },
   async execute(args, context) {
     return output(
       acquireLock(rootFromContext(context), {
         task: args.task,
+        executionProfile: args.executionProfile,
         sessionID: context?.sessionID || context?.session?.id,
         agent: context?.agent || "aegislane",
       }),
@@ -96,20 +182,24 @@ export const validate_memory = tool({
 });
 
 export const task_intake = tool({
-  description: "Infer AegisLane task scope, phase, target paths, checks, and risk from the user's prompt without requiring manual current.json edits.",
+  description: "Infer AegisLane task scope, phase, target paths, checks, risk, and execution profile from the user's prompt without requiring manual current.json edits.",
   args: {
     task: tool.schema.string().describe("The user's natural-language task prompt."),
+    full: tool.schema.boolean().describe("Return the full guardrail payload. Defaults to false for lower token use.").optional(),
   },
   async execute(args, context) {
-    return output(taskIntake(rootFromContext(context), args.task));
+    return output(taskIntake(rootFromContext(context), args.task, { compact: args.full !== true }));
   },
 });
 
 export const read_current = tool({
   description: "Read and validate aegislane/state/current.json.",
-  args: {},
-  async execute(_args, context) {
-    return output(readCurrent(rootFromContext(context), { createMissing: true }));
+  args: {
+    full: tool.schema.boolean().describe("Return full current.json. Defaults to false for lower token use.").optional(),
+  },
+  async execute(args, context) {
+    const current = readCurrent(rootFromContext(context), { createMissing: true });
+    return output(args.full ? current : compactCurrent(current));
   },
 });
 
@@ -117,17 +207,22 @@ export const read_phase = tool({
   description: "Read the active AegisLane phase markdown file.",
   args: {
     phase: tool.schema.string().describe("Optional phase id, such as 01-setup. Defaults to activePhase.").optional(),
+    full: tool.schema.boolean().describe("Return full phase content. Defaults to false for lower token use.").optional(),
   },
   async execute(args, context) {
-    return output(readPhase(rootFromContext(context), args.phase));
+    const phase = readPhase(rootFromContext(context), args.phase);
+    return output(args.full ? phase : compactPhase(phase));
   },
 });
 
 export const read_subagents = tool({
   description: "Read and validate aegislane/subagents.json.",
-  args: {},
-  async execute(_args, context) {
-    return output(readSubagents(rootFromContext(context), { createMissing: true }));
+  args: {
+    full: tool.schema.boolean().describe("Return full subagent registry. Defaults to false for lower token use.").optional(),
+  },
+  async execute(args, context) {
+    const registry = readSubagents(rootFromContext(context), { createMissing: true });
+    return output(args.full ? registry : compactSubagents(registry));
   },
 });
 
@@ -141,17 +236,23 @@ export const read_lanes = tool({
 
 export const read_skill_discovery = tool({
   description: "Read and validate aegislane/policies/skill-discovery.json.",
-  args: {},
-  async execute(_args, context) {
-    return output(readSkillDiscoveryPolicy(rootFromContext(context), { createMissing: true }));
+  args: {
+    full: tool.schema.boolean().describe("Return full skill discovery policy. Defaults to false for lower token use.").optional(),
+  },
+  async execute(args, context) {
+    const policy = readSkillDiscoveryPolicy(rootFromContext(context), { createMissing: true });
+    return output(args.full ? policy : compactSkillDiscovery(policy));
   },
 });
 
 export const read_models = tool({
   description: "Read and validate aegislane/models.json, the source of truth for AegisLane primary and subagent model settings.",
-  args: {},
-  async execute(_args, context) {
-    return output(readModels(rootFromContext(context), { createMissing: true }));
+  args: {
+    full: tool.schema.boolean().describe("Return full model config. Defaults to false for lower token use.").optional(),
+  },
+  async execute(args, context) {
+    const models = readModels(rootFromContext(context), { createMissing: true });
+    return output(args.full ? models : compactModels(models));
   },
 });
 
@@ -227,6 +328,7 @@ export const delegation_prompt = tool({
     const root = rootFromContext(context);
     const current = readCurrent(root, { createMissing: true });
     const intake = taskIntake(root, args.task);
+    const compactIntake = taskIntake(root, args.task, { compact: true });
     const phase = readPhase(root, intake.phase.activePhase);
     const registry = readSubagents(root, { createMissing: true });
     const selected = new Set(
@@ -261,8 +363,6 @@ export const delegation_prompt = tool({
           parallelSafe: agent.parallelSafe,
           targetPathsRequired: agent.targetPathsRequired,
           afterEachGate: agent.afterEachGate,
-          when: agent.when,
-          responsibilities: agent.responsibilities,
         };
       });
     const implementerSelected = agents.some((agent: any) => agent.id === "implementer" || agent.opencodeAgent === "aegislane-implementer");
@@ -283,23 +383,21 @@ export const delegation_prompt = tool({
     }
     return output({
       ok: true,
-      instruction: "Invoke the selected agent names with this packet. In Kilo Code use kiloAgent; in OpenCode use opencodeAgent. Do not do the subagent work in the primary AegisLane agent.",
+      instruction: "Invoke selected agents with this compact packet. Read policyRefs only if needed. In Kilo Code use kiloAgent; in OpenCode use opencodeAgent.",
       task: args.task,
-      taskIntake: intake,
+      taskIntake: compactIntake,
       waveId: args.waveId || "",
       laneId: args.laneId || "",
       parallelGroup: args.parallelGroup || "",
       activePhase: phase.activePhase,
       phasePath: phase.path,
-      phaseContent: phase.content,
+      phaseSummary: phase.content.split("\n").filter((line: string) => /^#|^- /.test(line)).slice(0, 12).join("\n"),
+      policyRefs: compactIntake.policyRefs,
       current: {
-        allowedPaths: current.allowedPaths,
-        protectedPaths: current.protectedPaths,
         requiredChecks: intake.inferred.requiredChecks,
         maxFilesChanged: current.maxFilesChanged,
         maxLinesChanged: current.maxLinesChanged,
         parallelWork: current.parallelWork || { enabled: false },
-        pullRequest: current.pullRequest || { enabled: false },
         allowAutoCommit: current.allowAutoCommit,
         allowAutoPush: current.allowAutoPush,
         allowAutoDeploy: current.allowAutoDeploy,
@@ -309,12 +407,12 @@ export const delegation_prompt = tool({
       targetPathWarnings,
       laneReservation,
       gatePlan: {
-        afterEachImplementer: [
-          "invoke aegislane-reviewer for the lane diff",
+        afterImplementerWave: [
+          "invoke aegislane-reviewer for each lane diff, parallel when supported",
           "invoke aegislane-tester when requiredChecks exist, when configured, or when checks fail",
-          "run prompt-inferred requiredChecks and current.json default requiredChecks when present",
-          "run aegislane_diff_policy",
-          "primary verifies changed files are allowed and not protected",
+          "run prompt-inferred requiredChecks and current.json default requiredChecks once after the wave when gateAfterParallelWave is true",
+          "run aegislane_diff_policy once after the wave when gateAfterParallelWave is true",
+          "primary verifies all changed files in the combined wave are allowed and not protected",
         ],
         stopOnFailure: true,
       },
@@ -331,13 +429,11 @@ export const delegation_prompt = tool({
         "Lane: {{laneId}}",
         "Parallel group: {{parallelGroup}}",
         "Active phase: {{activePhase}}",
-        "Allowed paths: {{allowedPaths}}",
-        "Protected paths: {{protectedPaths}}",
+        "Policy refs: {{policyRefs}}",
         "Target paths for this lane: {{targetPaths}}",
         "Required checks: {{requiredChecks}}",
         "Diff limits: {{maxFilesChanged}} files, {{maxLinesChanged}} lines.",
         "Parallel controls: {{parallelWork}}",
-        "Pull request policy: {{pullRequest}}",
         "After implementer gate plan: {{gatePlan}}",
         "Skills and MCP context: {{skillsMcpContext}}",
         "Known context: {{knownContext}}",

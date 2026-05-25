@@ -24,9 +24,11 @@ const PROTECTED_PATHS = [
 export const DEFAULT_SKILL_DISCOVERY_POLICY = {
   version: 1,
   enabled: true,
-  loadRequiredEveryRun: true,
-  requiredSkills: ["aegislane-skill-finder", "find-skills", "karpathy-guidelines"],
+  loadRequiredEveryRun: false,
+  requiredSkills: ["aegislane-skill-finder"],
   opportunisticSkills: [
+    "find-skills",
+    "karpathy-guidelines",
     "aegislane-grill-me",
     "brainstorming",
     "writing-plans",
@@ -80,59 +82,59 @@ export const DEFAULT_MODELS = {
   defaults: {
     model: "openai/gpt-5.5",
     smallModel: "openai/gpt-5.5",
-    reasoningEffort: "high",
+    reasoningEffort: "medium",
     textVerbosity: "low",
     reasoningSummary: "auto",
   },
   agents: {
     aegislane: {
       model: "openai/gpt-5.5",
-      reasoningEffort: "high",
-      textVerbosity: "low",
-      reasoningSummary: "auto",
-      steps: 48,
-    },
-    "aegislane-explorer": {
-      model: "openai/gpt-5.5",
       reasoningEffort: "medium",
-      textVerbosity: "low",
-      reasoningSummary: "auto",
-      steps: 14,
-    },
-    "aegislane-architect": {
-      model: "openai/gpt-5.5",
-      reasoningEffort: "high",
-      textVerbosity: "low",
-      reasoningSummary: "auto",
-      steps: 14,
-    },
-    "aegislane-implementer": {
-      model: "openai/gpt-5.5",
-      reasoningEffort: "high",
       textVerbosity: "low",
       reasoningSummary: "auto",
       steps: 32,
     },
-    "aegislane-reviewer": {
+    "aegislane-explorer": {
       model: "openai/gpt-5.5",
-      reasoningEffort: "high",
+      reasoningEffort: "low",
       textVerbosity: "low",
       reasoningSummary: "auto",
-      steps: 14,
+      steps: 10,
     },
-    "aegislane-tester": {
-      model: "openai/gpt-5.5",
-      reasoningEffort: "high",
-      textVerbosity: "low",
-      reasoningSummary: "auto",
-      steps: 14,
-    },
-    "aegislane-docs": {
+    "aegislane-architect": {
       model: "openai/gpt-5.5",
       reasoningEffort: "medium",
       textVerbosity: "low",
       reasoningSummary: "auto",
-      steps: 16,
+      steps: 12,
+    },
+    "aegislane-implementer": {
+      model: "openai/gpt-5.5",
+      reasoningEffort: "medium",
+      textVerbosity: "low",
+      reasoningSummary: "auto",
+      steps: 24,
+    },
+    "aegislane-reviewer": {
+      model: "openai/gpt-5.5",
+      reasoningEffort: "medium",
+      textVerbosity: "low",
+      reasoningSummary: "auto",
+      steps: 10,
+    },
+    "aegislane-tester": {
+      model: "openai/gpt-5.5",
+      reasoningEffort: "medium",
+      textVerbosity: "low",
+      reasoningSummary: "auto",
+      steps: 10,
+    },
+    "aegislane-docs": {
+      model: "openai/gpt-5.5",
+      reasoningEffort: "low",
+      textVerbosity: "low",
+      reasoningSummary: "auto",
+      steps: 12,
     },
     "aegislane-publisher": {
       model: "openai/gpt-5.5",
@@ -169,7 +171,7 @@ export const DEFAULT_CURRENT = {
   requiredChecks: [],
   maxFilesChanged: 8,
   maxLinesChanged: 500,
-  maxSafeStepMinutes: 90,
+  maxSafeStepMinutes: 45,
   promptIntake: {
     enabled: true,
     sourceOfTruth: "user_prompt",
@@ -204,14 +206,58 @@ export const DEFAULT_CURRENT = {
       "all acceptance criteria and target paths are already clear",
     ],
   },
+  executionProfiles: {
+    fast: {
+      enabled: true,
+      description: "Low-risk, explicit-path edits that should finish without subagent handoffs.",
+      allowPrimaryEdits: true,
+      requireActiveLock: true,
+      requireExplicitTargetPaths: true,
+      maxFilesChanged: 2,
+      maxLinesChanged: 80,
+      maxSafeStepMinutes: 10,
+      skipReadOnlySubagents: true,
+      skipImplementerSubagent: true,
+      skipReviewerSubagent: true,
+      skipTesterSubagentUnlessChecksFail: true,
+      writeReport: false,
+      writeShiftNote: false,
+      appendLog: true,
+      runDiffPolicy: true,
+      runPrStatus: false,
+    },
+    standard: {
+      enabled: true,
+      description: "Normal guarded work with one implementer lane and focused verification.",
+      allowPrimaryEdits: false,
+      maxSafeStepMinutes: 45,
+      writeReport: true,
+      writeShiftNote: true,
+      appendLog: true,
+      runDiffPolicy: true,
+      runPrStatus: true,
+    },
+    guarded: {
+      enabled: true,
+      description: "Risky, broad, or unclear work that keeps full subagent gates and clarification.",
+      allowPrimaryEdits: false,
+      maxSafeStepMinutes: 90,
+      writeReport: true,
+      writeShiftNote: true,
+      appendLog: true,
+      runDiffPolicy: true,
+      runPrStatus: true,
+    },
+  },
   parallelWork: {
     enabled: true,
-    maxReadOnlySubagents: 3,
-    maxImplementers: 2,
+    maxReadOnlySubagents: 4,
+    maxImplementers: 4,
     requireDisjointPaths: true,
     reviewAfterEachImplementer: true,
-    testAfterEachImplementer: true,
-    diffPolicyAfterEachImplementer: true,
+    testAfterEachImplementer: false,
+    diffPolicyAfterEachImplementer: false,
+    gateAfterParallelWave: true,
   },
   pullRequest: {
     enabled: true,
@@ -357,9 +403,9 @@ export const DEFAULT_SUBAGENTS = {
       kiloAgent: "aegislane-explorer",
       kiloMode: "subagent",
       model: "openai/gpt-5.5",
-      reasoningEffort: "medium",
+      reasoningEffort: "low",
       textVerbosity: "low",
-      steps: 14,
+      steps: 10,
       enabled: true,
       mode: "readonly",
       when: ["before implementation", "when files are unknown", "when active phase scope is unclear"],
@@ -379,9 +425,9 @@ export const DEFAULT_SUBAGENTS = {
       kiloAgent: "aegislane-architect",
       kiloMode: "subagent",
       model: "openai/gpt-5.5",
-      reasoningEffort: "high",
+      reasoningEffort: "medium",
       textVerbosity: "low",
-      steps: 14,
+      steps: 12,
       enabled: true,
       mode: "readonly",
       when: [
@@ -404,9 +450,9 @@ export const DEFAULT_SUBAGENTS = {
       kiloAgent: "aegislane-implementer",
       kiloMode: "subagent",
       model: "openai/gpt-5.5",
-      reasoningEffort: "high",
+      reasoningEffort: "medium",
       textVerbosity: "low",
-      steps: 32,
+      steps: 24,
       enabled: true,
       mode: "guarded-write",
       when: [
@@ -424,11 +470,11 @@ export const DEFAULT_SUBAGENTS = {
       parallelSafe: "only with disjoint targetPaths and after-implementer gates",
       targetPathsRequired: true,
       afterEachGate: [
-        "aegislane-reviewer",
-        "aegislane-tester when checks exist or testAfterEachImplementer is true",
-        "prompt-inferred requiredChecks plus current.json defaults",
-        "aegislane_diff_policy",
-        "primary verification",
+        "aegislane-reviewer per lane, parallel when supported",
+        "aegislane-tester when checks exist, testAfterEachImplementer is true, or checks fail",
+        "prompt-inferred requiredChecks plus current.json defaults after the wave when gateAfterParallelWave is true",
+        "aegislane_diff_policy after the wave when gateAfterParallelWave is true",
+        "primary verification of the combined wave",
       ],
     },
     {
@@ -439,12 +485,12 @@ export const DEFAULT_SUBAGENTS = {
       kiloAgent: "aegislane-reviewer",
       kiloMode: "subagent",
       model: "openai/gpt-5.5",
-      reasoningEffort: "high",
+      reasoningEffort: "medium",
       textVerbosity: "low",
-      steps: 14,
+      steps: 10,
       enabled: true,
       mode: "readonly",
-      when: ["after implementation", "after every implementer lane", "before final report"],
+      when: ["after implementation", "after every implementer lane or wave", "before final report"],
       responsibilities: [
         "review diff",
         "find scope creep",
@@ -462,12 +508,12 @@ export const DEFAULT_SUBAGENTS = {
       kiloAgent: "aegislane-tester",
       kiloMode: "subagent",
       model: "openai/gpt-5.5",
-      reasoningEffort: "high",
+      reasoningEffort: "medium",
       textVerbosity: "low",
-      steps: 14,
+      steps: 10,
       enabled: true,
       mode: "readonly",
-      when: ["after implementation", "after every implementer lane when configured", "when requiredChecks exist"],
+      when: ["after implementation", "after every implementer wave when configured", "when requiredChecks exist"],
       responsibilities: [
         "recommend checks",
         "interpret failing tests",
@@ -484,9 +530,9 @@ export const DEFAULT_SUBAGENTS = {
       kiloAgent: "aegislane-docs",
       kiloMode: "subagent",
       model: "openai/gpt-5.5",
-      reasoningEffort: "medium",
+      reasoningEffort: "low",
       textVerbosity: "low",
-      steps: 16,
+      steps: 12,
       enabled: true,
       mode: "readonly",
       when: [
@@ -680,6 +726,9 @@ export function readCurrent(root = process.cwd(), options = {}) {
     } else {
       for (const key of ["enabled", "requireDisjointPaths", "reviewAfterEachImplementer", "testAfterEachImplementer", "diffPolicyAfterEachImplementer"]) {
         if (typeof current.parallelWork[key] !== "boolean") issues.push(`parallelWork.${key} must be a boolean`);
+      }
+      if (current.parallelWork.gateAfterParallelWave !== undefined && typeof current.parallelWork.gateAfterParallelWave !== "boolean") {
+        issues.push("parallelWork.gateAfterParallelWave must be a boolean");
       }
       for (const key of ["maxReadOnlySubagents", "maxImplementers"]) {
         if (!Number.isInteger(current.parallelWork[key]) || current.parallelWork[key] < 1) {
@@ -960,6 +1009,171 @@ function riskFlagsForTask(task) {
   return risks;
 }
 
+function wordCount(task) {
+  const text = String(task || "").trim();
+  if (!text) return 0;
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
+function inferExecutionProfile({ task, targetPathStatus, riskFlags, requiredChecks, questions }) {
+  const text = String(task || "");
+  const targetCount = targetPathStatus.length;
+  const blockers = [];
+  const highRisk = riskFlags.some((risk) => ["auth", "payment", "database", "infrastructure", "secrets", "broad_refactor"].includes(risk));
+  const pathIssue = targetPathStatus.some((item) => item.protected || !item.allowed);
+  const allDocLikeTargets = targetPathStatus.length > 0 && targetPathStatus.every((item) => /(^|\/)(README|LICENSE)(\.md)?$/i.test(item.path) || /\.(md|txt)$/i.test(item.path));
+  const quickIntent = /\b(typo|spelling|copy|docs?|readme|comment|label|text|minor|tiny|quick|small|basit|kucuk|küçük|ufak|yaz[iı]m|imla|dok[uü]man|belge|metin|yorum)\b/i.test(text);
+  const broadIntent = /\b(refactor|rewrite|overhaul|migrate|architecture|feature|implement|add support|new flow|large|broad|geni[sş]|büyük)\b/i.test(text);
+
+  if (!targetCount) blockers.push("target paths are not explicit");
+  if (targetCount > 2) blockers.push("more than two target paths were inferred");
+  if (highRisk) blockers.push("high-risk boundary was detected");
+  if (pathIssue) blockers.push("a target path is protected or outside allowedPaths");
+  if (broadIntent) blockers.push("prompt looks broader than a tiny edit");
+  if (requiredChecks.length > 1) blockers.push("multiple required checks were inferred");
+  if (questions.length) blockers.push("clarification is still needed");
+
+  const fastPathEligible = blockers.length === 0 && (quickIntent || allDocLikeTargets || targetCount <= 2);
+  if (fastPathEligible) {
+    return {
+      name: "fast",
+      fastPathEligible: true,
+      confidence: quickIntent ? "high" : "medium",
+      reasons: ["explicit allowed target paths", "no high-risk flags", "small prompt surface"],
+      blockers: [],
+      guidance: "Use the fast path: primary may make the tiny edit directly after acquiring a fast lock, then run diff policy and any inferred checks.",
+    };
+  }
+
+  if (highRisk || broadIntent || questions.length) {
+    return {
+      name: "guarded",
+      fastPathEligible: false,
+      confidence: "high",
+      reasons: ["risk, breadth, or missing scope requires full guarded gates"],
+      blockers,
+      guidance: "Use the guarded path with clarification and only the subagents that materially reduce risk.",
+    };
+  }
+
+  return {
+    name: "standard",
+    fastPathEligible: false,
+    confidence: "medium",
+    reasons: ["task is low-risk but not clearly tiny"],
+    blockers,
+    guidance: "Use the standard path with one focused implementer lane and lean verification.",
+  };
+}
+
+function targetsAreDisjoint(targetPaths) {
+  for (let left = 0; left < targetPaths.length; left += 1) {
+    for (let right = left + 1; right < targetPaths.length; right += 1) {
+      if (laneTargetsOverlap(targetPaths[left], targetPaths[right])) return false;
+    }
+  }
+  return true;
+}
+
+function inferParallelPlan({ executionProfile, targetPathStatus, questions, current }) {
+  const targetPaths = targetPathStatus.map((item) => item.path);
+  const parallelWork = current.parallelWork || DEFAULT_CURRENT.parallelWork;
+  const maxReadOnlySubagents = parallelWork.maxReadOnlySubagents || DEFAULT_CURRENT.parallelWork.maxReadOnlySubagents;
+  const maxImplementers = parallelWork.maxImplementers || DEFAULT_CURRENT.parallelWork.maxImplementers;
+  const cleanTargets = targetPathStatus.length > 0 && targetPathStatus.every((item) => item.allowed && !item.protected);
+  const disjointTargets = targetsAreDisjoint(targetPaths);
+
+  if (executionProfile.name === "fast") {
+    return {
+      mode: "direct",
+      reason: "fast profile uses one guarded primary edit path instead of subagent lanes",
+      targetPaths,
+      maxConcurrentLanes: 0,
+      maxConcurrentReadOnly: 0,
+      gates: ["diff-policy", "inferred/default checks"],
+    };
+  }
+
+  if (!parallelWork.enabled) {
+    return {
+      mode: "serial",
+      reason: "parallelWork is disabled",
+      targetPaths,
+      maxConcurrentLanes: 1,
+      maxConcurrentReadOnly: 1,
+      gates: ["review", "checks", "diff-policy"],
+    };
+  }
+
+  if (executionProfile.name === "guarded" || questions.length || !cleanTargets) {
+    return {
+      mode: "parallel-readonly-then-serial-or-lanes",
+      reason: "guarded work needs clarification, path mapping, or risk review before write lanes",
+      targetPaths,
+      maxConcurrentLanes: 0,
+      maxConcurrentReadOnly: maxReadOnlySubagents,
+      gates: ["clarification", "lane reservation before writes", "review", "checks", "diff-policy"],
+    };
+  }
+
+  if (targetPaths.length > 1 && disjointTargets) {
+    return {
+      mode: "parallel-implementer-wave",
+      reason: "multiple explicit disjoint targets can be reserved and implemented concurrently",
+      targetPaths,
+      maxConcurrentLanes: Math.min(maxImplementers, targetPaths.length),
+      maxConcurrentReadOnly: maxReadOnlySubagents,
+      gates: parallelWork.gateAfterParallelWave === false
+        ? ["per-lane review", "required checks", "diff-policy"]
+        : ["parallel lane review", "single combined required-check run", "single diff-policy run"],
+    };
+  }
+
+  return {
+    mode: "serial",
+    reason: targetPaths.length > 1 ? "target paths overlap or are not safely disjoint" : "one target path",
+    targetPaths,
+    maxConcurrentLanes: 1,
+    maxConcurrentReadOnly: maxReadOnlySubagents,
+    gates: ["review", "checks", "diff-policy"],
+  };
+}
+
+function compactTaskIntakeResult(result) {
+  return {
+    ok: result.ok,
+    task: result.task,
+    phase: result.phase.activePhase,
+    phasePath: result.phase.path,
+    profile: result.inferred.executionProfile,
+    fast: result.inferred.fastPathEligible,
+    targets: result.inferred.targetPaths,
+    targetStatus: result.targetPathStatus,
+    checks: result.inferred.requiredChecks,
+    risks: result.inferred.riskFlags,
+    needsClarification: result.inferred.needsClarification,
+    questions: result.inferred.questions,
+    blockers: result.inferred.executionProfileBlockers,
+    parallelPlan: result.parallelPlan,
+    limits: {
+      maxFilesChanged: result.guardrails.maxFilesChanged,
+      maxLinesChanged: result.guardrails.maxLinesChanged,
+      maxSafeStepMinutes: result.guardrails.maxSafeStepMinutes,
+    },
+    policyRefs: {
+      current: "aegislane/state/current.json",
+      phase: result.phase.path,
+      protectedPaths: "aegislane/policies/protected-paths.json",
+      diffPolicy: "aegislane/policies/diff-policy.json",
+      skillDiscovery: "aegislane/policies/skill-discovery.json",
+      models: "aegislane/models.json",
+      subagents: "aegislane/subagents.json",
+      lanes: "aegislane/state/lanes.json",
+    },
+    recommendation: result.recommendation,
+  };
+}
+
 export function taskIntake(root = process.cwd(), task = "", options = {}) {
   ensureMemory(root);
   const current = readCurrent(root, { createMissing: true });
@@ -975,8 +1189,9 @@ export function taskIntake(root = process.cwd(), task = "", options = {}) {
   const riskFlags = riskFlagsForTask(task);
   const requiredChecks = inferChecks(task, current);
   const questions = [];
+  const taskWordCount = wordCount(task);
   if (!String(task || "").trim()) questions.push("User task is empty.");
-  if (String(task || "").trim().split(/\s+/).length < 4) questions.push("Task is too short to infer safe scope.");
+  if (taskWordCount < 4 && inferredTargetPaths.length === 0) questions.push("Task is too short to infer safe scope.");
   if (inferredTargetPaths.length === 0) questions.push("Target paths are not explicit; explorer should map files before implementation.");
   if (riskFlags.some((risk) => ["auth", "payment", "database", "infrastructure", "secrets", "broad_refactor"].includes(risk))) {
     questions.push("Prompt touches a high-risk boundary; clarify explicit scope, non-goals, and acceptance checks before implementation.");
@@ -984,7 +1199,12 @@ export function taskIntake(root = process.cwd(), task = "", options = {}) {
   const targetPathWarnings = targetPathStatus
     .filter((item) => !item.allowed || item.protected)
     .map((item) => `${item.path}: ${item.protected ? "protected" : "outside allowedPaths"}`);
-  return {
+  if (targetPathWarnings.length) {
+    questions.push("One or more target paths are protected or outside allowedPaths; adjust scope or guardrails before implementation.");
+  }
+  const executionProfile = inferExecutionProfile({ task, targetPathStatus, riskFlags, requiredChecks, questions });
+  const parallelPlan = inferParallelPlan({ executionProfile, targetPathStatus, questions, current });
+  const result = {
     ok: true,
     task: String(task || ""),
     sourceOfTruth: "user_prompt",
@@ -1002,13 +1222,21 @@ export function taskIntake(root = process.cwd(), task = "", options = {}) {
       riskFlags,
       needsClarification: questions.length > 0,
       questions,
+      executionProfile: executionProfile.name,
+      fastPathEligible: executionProfile.fastPathEligible,
+      executionProfileConfidence: executionProfile.confidence,
+      executionProfileReasons: executionProfile.reasons,
+      executionProfileBlockers: executionProfile.blockers,
     },
+    executionProfile,
+    parallelPlan,
     guardrails: {
       allowedPaths: current.allowedPaths,
       protectedPaths: current.protectedPaths,
       maxFilesChanged: current.maxFilesChanged,
       maxLinesChanged: current.maxLinesChanged,
       maxSafeStepMinutes: current.maxSafeStepMinutes,
+      executionProfiles: current.executionProfiles || DEFAULT_CURRENT.executionProfiles,
       parallelWork: current.parallelWork || { enabled: false },
       pullRequest: current.pullRequest || { enabled: false },
       allowAutoCommit: current.allowAutoCommit,
@@ -1020,9 +1248,12 @@ export function taskIntake(root = process.cwd(), task = "", options = {}) {
     recommendation:
       questions.length > 0
         ? "Use read-only context and ask one clarification question before implementer delegation."
+        : executionProfile.name === "fast"
+          ? "Use the fast path for this tiny low-risk task: acquire a fast lock, edit directly within inferred target paths, run diff policy and any inferred checks, append a compact log, and release the lock."
         : "Proceed with one small safe delegated implementation step.",
     options,
   };
+  return options.compact ? compactTaskIntakeResult(result) : result;
 }
 
 export function readSubagents(root = process.cwd(), options = {}) {
@@ -1089,7 +1320,7 @@ function normalizeTargetPaths(root, value) {
 }
 
 function isActiveLane(lane) {
-  return !["released", "completed", "failed", "cancelled"].includes(String(lane.status || "reserved"));
+  return !["released", "completed", "verified", "failed", "cancelled"].includes(String(lane.status || "reserved"));
 }
 
 function hasGlobSyntax(value) {
@@ -1575,6 +1806,7 @@ export function acquireLock(root = process.cwd(), options = {}) {
     version: 1,
     owner: "aegislane",
     task: options.task || "",
+    executionProfile: options.executionProfile || options.profile || null,
     pid: process.pid,
     sessionID: options.sessionID || null,
     agent: options.agent || null,
@@ -1628,10 +1860,41 @@ export function status(root = process.cwd()) {
     phasePath: phase?.path || null,
     maxSafeStepMinutes: current?.maxSafeStepMinutes ?? null,
     enabledSubagents: subagents?.subagents?.filter((agent) => agent.enabled).map((agent) => agent.opencodeAgent) || [],
-    models,
-    skillDiscovery,
-    questioning: current?.questioning || null,
-    pullRequest: current?.pullRequest || null,
+    models: models
+      ? {
+          defaults: models.defaults,
+          agents: Object.fromEntries(Object.entries(models.agents || {}).map(([name, config]) => [
+            name,
+            {
+              model: config.model,
+              reasoningEffort: config.reasoningEffort,
+              steps: config.steps,
+            },
+          ])),
+        }
+      : null,
+    skillDiscovery: skillDiscovery
+      ? {
+          enabled: skillDiscovery.enabled,
+          loadRequiredEveryRun: skillDiscovery.loadRequiredEveryRun,
+          requiredSkills: skillDiscovery.requiredSkills || [],
+          searchWhenMissing: skillDiscovery.searchWhenMissing,
+        }
+      : null,
+    questioning: current?.questioning
+      ? {
+          enabled: current.questioning.enabled,
+          maxQuestions: current.questioning.maxQuestions,
+          timing: current.questioning.timing,
+        }
+      : null,
+    pullRequest: current?.pullRequest
+      ? {
+          enabled: current.pullRequest.enabled,
+          command: current.pullRequest.command,
+          requireExplicitCommand: current.pullRequest.requireExplicitCommand,
+        }
+      : null,
     activeLanes: validation.ok ? readLanes(root, { createMissing: false }).lanes.filter(isActiveLane).map((lane) => ({
       waveId: lane.waveId,
       laneId: lane.laneId,
@@ -1830,6 +2093,24 @@ export function appendLog(root = process.cwd(), payload = {}) {
   });
   fs.appendFileSync(file(root, "aegislane/logs/automation-runs.jsonl"), `${JSON.stringify(entry)}\n`, "utf8");
   return { ok: true, path: "aegislane/logs/automation-runs.jsonl", entry };
+}
+
+const NOISY_HOST_EVENT_PATTERNS = [/^file\.watcher\./i, /^vcs\./i];
+
+export function shouldLogHostEvent(eventOrType, options = {}) {
+  const type = String(
+    typeof eventOrType === "string"
+      ? eventOrType
+      : eventOrType?.type || eventOrType?.name || eventOrType?.event || "",
+  );
+  if (!type) return false;
+  if (NOISY_HOST_EVENT_PATTERNS.some((pattern) => pattern.test(type))) return false;
+
+  const hasSession = Boolean(options.sessionID);
+  const tracked = Boolean(options.trackedSession || options.lockSessionMatches);
+  const marked = Boolean(options.markedAegisLane);
+  if (/session\.(idle|error|deleted|done|stopped)$/i.test(type)) return hasSession && (tracked || marked);
+  return hasSession && (tracked || marked);
 }
 
 export function parseJsonPayload(value, fallback = {}) {

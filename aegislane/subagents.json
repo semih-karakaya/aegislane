@@ -24,9 +24,9 @@
         "do not modify files"
       ],
       "parallelSafe": true,
-      "reasoningEffort": "medium",
+      "reasoningEffort": "low",
       "textVerbosity": "low",
-      "steps": 14
+      "steps": 10
     },
     {
       "id": "architect",
@@ -49,9 +49,9 @@
         "do not modify files"
       ],
       "parallelSafe": true,
-      "reasoningEffort": "high",
+      "reasoningEffort": "medium",
       "textVerbosity": "low",
-      "steps": 14
+      "steps": 12
     },
     {
       "id": "implementer",
@@ -78,15 +78,15 @@
       "parallelSafe": "only with disjoint targetPaths and after-implementer gates",
       "targetPathsRequired": true,
       "afterEachGate": [
-        "aegislane-reviewer",
-        "aegislane-tester when checks exist or testAfterEachImplementer is true",
-        "prompt-inferred requiredChecks plus current.json defaults",
-        "aegislane_diff_policy",
-        "primary verification"
+        "aegislane-reviewer per lane, parallel when supported",
+        "aegislane-tester when checks exist, testAfterEachImplementer is true, or checks fail",
+        "prompt-inferred requiredChecks plus current.json defaults after the wave when gateAfterParallelWave is true",
+        "aegislane_diff_policy after the wave when gateAfterParallelWave is true",
+        "primary verification of the combined wave"
       ],
-      "reasoningEffort": "high",
+      "reasoningEffort": "medium",
       "textVerbosity": "low",
-      "steps": 32
+      "steps": 24
     },
     {
       "id": "reviewer",
@@ -100,7 +100,7 @@
       "mode": "readonly",
       "when": [
         "after implementation",
-        "after every implementer lane",
+        "after every implementer lane or wave",
         "before final report"
       ],
       "responsibilities": [
@@ -111,9 +111,9 @@
         "do not modify files"
       ],
       "parallelSafe": true,
-      "reasoningEffort": "high",
+      "reasoningEffort": "medium",
       "textVerbosity": "low",
-      "steps": 14
+      "steps": 10
     },
     {
       "id": "tester",
@@ -127,7 +127,7 @@
       "mode": "readonly",
       "when": [
         "after implementation",
-        "after every implementer lane when configured",
+        "after every implementer wave when configured",
         "when requiredChecks exist"
       ],
       "responsibilities": [
@@ -137,9 +137,9 @@
         "do not modify files"
       ],
       "parallelSafe": true,
-      "reasoningEffort": "high",
+      "reasoningEffort": "medium",
       "textVerbosity": "low",
-      "steps": 14
+      "steps": 10
     },
     {
       "id": "docs",
@@ -163,9 +163,9 @@
         "do not modify files"
       ],
       "parallelSafe": true,
-      "reasoningEffort": "medium",
+      "reasoningEffort": "low",
       "textVerbosity": "low",
-      "steps": 16
+      "steps": 12
     },
     {
       "id": "publisher",

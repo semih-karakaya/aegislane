@@ -256,6 +256,7 @@ AegisLane should read your prompt first and infer:
 - default or prompt-implied phase
 - required checks
 - risk boundaries
+- execution profile: `fast`, `standard`, or `guarded`
 - whether one clarification question is needed
 
 Examples:
@@ -293,8 +294,28 @@ The most important fields are:
 - `protectedPaths`: files the agent must not edit.
 - `requiredChecks`: default checks to combine with prompt-inferred checks.
 - `maxFilesChanged` and `maxLinesChanged`: diff size limits.
+- `executionProfiles`: controls the low-overhead fast path and standard/guarded gates.
 - `parallelWork`: controls implementer lanes and after-each-lane gates.
 - `pullRequest`: controls guarded PR checkpoint behavior.
+
+### Execution Profiles
+
+AegisLane now classifies each prompt before deciding how much ceremony to use:
+
+- `fast`: explicit, low-risk, one-file/two-file edits, including focused code fixes when target paths are clear and no risky boundary is involved. The primary agent may edit directly after acquiring a fast lock, then runs diff policy and any inferred checks. It skips subagents, lane reservations, report/shift-note writing, tester/reviewer gates, and PR status.
+- `standard`: normal low-risk implementation that uses one focused implementer lane or a parallel implementer wave when target paths are explicit and disjoint.
+- `guarded`: risky, broad, unclear, or boundary-touching work that keeps clarification and full gates.
+
+Fast path still enforces `allowedPaths`, `protectedPaths`, diff policy, lock cleanup, and no commit/push/deploy. Standard parallel waves reserve every disjoint lane before implementation, run lanes together when the host supports concurrent task calls, then run review/check/diff gates for the combined wave.
+
+### Token And Cache Strategy
+
+AegisLane keeps high-volume context behind compact tools by default:
+
+- `aegislane_task_intake` returns a compact shape by default: profile, targets, checks, risk, parallel plan, limits, and policy refs. Use `full: true` only when the full guardrail payload is needed.
+- `read_current`, `read_phase`, `read_skill_discovery`, `read_models`, and `read_subagents` also return compact summaries by default.
+- Delegation packets pass policy file refs and a short phase summary instead of copying full phase/current/subagent content into every subagent call.
+- Slash command files keep the static workflow prefix before `$ARGUMENTS` so repeated runs have a better chance of prompt-cache hits.
 
 Phase files still live in:
 
@@ -418,10 +439,11 @@ implementation orchestrator. Optimize for:
 ### Required Startup Reads
 
 At the start of every AegisLane run, first infer task scope from the user's prompt.
-Then read these files from the current worktree:
+Fast profile runs can stop after current guardrails and diff policy context. Standard
+and guarded runs then read these files from the current worktree:
 
 ```text
-user prompt through aegislane_task_intake
+user prompt through compact aegislane_task_intake
 aegislane/state/current.json
 aegislane/phases/<prompt-inferred-or-default-phase>.md
 aegislane/policies/protected-paths.json
@@ -439,20 +461,21 @@ as guardrail defaults, not as a required human-authored task form.
 
 Follow this sequence for implementation work:
 
-1. Acquire `aegislane/state/run.lock`.
-2. Run preflight or validate the memory layout.
-3. Run prompt intake on the user task.
-4. Identify prompt-inferred phase, target paths, checks, risks, allowed paths, protected paths, and diff limits.
-5. Ask one clarification question only when prompt intake or read-only exploration leaves unsafe ambiguity.
-6. Read `aegislane/subagents.json`.
-7. Select only enabled subagents whose `when` conditions match.
-8. Use read-only subagents before implementation when exploration, design, docs, or risk review is needed.
-9. Reserve lanes in `aegislane/state/lanes.json` before parallel implementer work.
-10. Delegate exactly one small implementation step to an implementer.
-11. After every implementer lane, run reviewer, tester when relevant, prompt-inferred/default checks, and diff policy.
-12. Write a report and shift note.
-13. Append one JSONL log entry.
-14. Release the lock even on failure.
+1. Run prompt intake on the user task.
+2. If intake returns the `fast` profile, acquire `aegislane/state/run.lock` with `executionProfile: "fast"`, edit directly within inferred target paths, run diff policy plus inferred checks, append a compact JSONL log, release the lock, and stop.
+3. For standard or guarded work, acquire `aegislane/state/run.lock`.
+4. Run preflight or validate the memory layout.
+5. Identify prompt-inferred phase, target paths, checks, risks, allowed paths, protected paths, and diff limits.
+6. Ask one clarification question only when prompt intake or read-only exploration leaves unsafe ambiguity.
+7. Read `aegislane/subagents.json`.
+8. Select only enabled subagents whose `when` conditions match.
+9. Use read-only subagents before implementation when exploration, design, docs, or risk review is needed.
+10. Reserve all disjoint lanes in `aegislane/state/lanes.json` before parallel implementer work.
+11. Start all reserved implementer lanes in the wave before waiting on gate work.
+12. After the implementer wave, run reviewer, tester when relevant, prompt-inferred/default checks, and diff policy.
+13. Write a report and shift note.
+14. Append one JSONL log entry.
+15. Release the lock even on failure.
 
 ### Subagent Rules
 

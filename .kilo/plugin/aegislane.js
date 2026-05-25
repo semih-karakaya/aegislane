@@ -60,6 +60,90 @@ function payloadFromArgs(runtime, args) {
   return payload;
 }
 
+function compactCurrent(current) {
+  return {
+    version: current.version,
+    activePhase: current.activePhase,
+    status: current.status,
+    limits: {
+      maxFilesChanged: current.maxFilesChanged,
+      maxLinesChanged: current.maxLinesChanged,
+      maxSafeStepMinutes: current.maxSafeStepMinutes,
+    },
+    parallelWork: current.parallelWork,
+    executionProfiles: current.executionProfiles,
+    requiredChecks: current.requiredChecks,
+    policyRefs: {
+      current: "aegislane/state/current.json",
+      protectedPaths: "aegislane/policies/protected-paths.json",
+      diffPolicy: "aegislane/policies/diff-policy.json",
+    },
+  };
+}
+
+function compactPhase(phase) {
+  return {
+    activePhase: phase.activePhase,
+    path: phase.path,
+    summary: String(phase.content || "")
+      .split("\n")
+      .filter((line) => /^#|^- /.test(line))
+      .slice(0, 16)
+      .join("\n"),
+  };
+}
+
+function compactSubagents(registry) {
+  return {
+    version: registry.version,
+    subagents: (registry.subagents || [])
+      .filter((agent) => agent.enabled !== false)
+      .map((agent) => ({
+        id: agent.id,
+        opencodeAgent: agent.opencodeAgent,
+        kiloAgent: agent.kiloAgent || agent.opencodeAgent,
+        mode: agent.mode,
+        parallelSafe: agent.parallelSafe,
+        targetPathsRequired: agent.targetPathsRequired,
+        steps: agent.steps,
+      })),
+  };
+}
+
+function compactSkillDiscovery(policy) {
+  return {
+    version: policy.version,
+    enabled: policy.enabled,
+    loadRequiredEveryRun: policy.loadRequiredEveryRun,
+    requiredSkills: policy.requiredSkills || [],
+    searchWhenMissing: policy.searchWhenMissing,
+    autoInstall: policy.autoInstall
+      ? {
+          enabled: policy.autoInstall.enabled,
+          maxInstallsPerRun: policy.autoInstall.maxInstallsPerRun,
+          requireTrustedSource: policy.autoInstall.requireTrustedSource,
+        }
+      : undefined,
+  };
+}
+
+function compactModels(models) {
+  return {
+    version: models.version,
+    defaults: models.defaults,
+    agents: Object.fromEntries(
+      Object.entries(models.agents || {}).map(([name, config]) => [
+        name,
+        {
+          model: config.model,
+          reasoningEffort: config.reasoningEffort,
+          steps: config.steps,
+        },
+      ]),
+    ),
+  };
+}
+
 function sessionIDFrom(value) {
   return (
     value?.sessionID ||
@@ -118,6 +202,17 @@ function isTaskTool(toolName) {
   return /(^|\.)(task)$/i.test(toolName) || /^task$/i.test(toolName);
 }
 
+function assertPrimaryEditAllowed(runtime, root, agentName, toolName, paths) {
+  if (!isEditTool(toolName) || !/^aegislane$/i.test(agentName)) return;
+  const lock = runtime.readLock(root);
+  if (!lock || lock.owner !== "aegislane" || lock.executionProfile !== "fast") {
+    throw new Error("AegisLane primary edits require an active fast-path lock. Use aegislane_acquire_lock with executionProfile=fast or delegate to aegislane-implementer.");
+  }
+  if (!paths.length) {
+    throw new Error("AegisLane primary fast-path edits require explicit file paths so guards can verify allowedPaths and protectedPaths.");
+  }
+}
+
 function inspectPaths(runtime, root, toolName, paths) {
   const edit = isEditTool(toolName);
   const read = isReadTool(toolName);
@@ -166,12 +261,14 @@ function tools(runtime, tool) {
       description: "Acquire aegislane/state/run.lock. Fails if another AegisLane run is active.",
       args: {
         task: tool.schema.string().describe("Short task description for the lock metadata.").optional(),
+        executionProfile: tool.schema.string().describe("Optional execution profile, such as fast, standard, or guarded.").optional(),
       },
       async execute(args, context) {
         return output(
           runtime,
           runtime.acquireLock(rootFromContext(context), {
             task: args.task,
+            executionProfile: args.executionProfile,
             sessionID: context?.sessionID || context?.session?.id,
             agent: context?.agent || "aegislane",
           }),
@@ -209,20 +306,24 @@ function tools(runtime, tool) {
     }),
 
     aegislane_task_intake: tool({
-      description: "Infer AegisLane task scope, phase, target paths, checks, and risk from the user's prompt without requiring manual current.json edits.",
+      description: "Infer AegisLane task scope, phase, target paths, checks, risk, and execution profile from the user's prompt without requiring manual current.json edits.",
       args: {
         task: tool.schema.string().describe("The user's natural-language task prompt."),
+        full: tool.schema.boolean().describe("Return the full guardrail payload. Defaults to false for lower token use.").optional(),
       },
       async execute(args, context) {
-        return output(runtime, runtime.taskIntake(rootFromContext(context), args.task));
+        return output(runtime, runtime.taskIntake(rootFromContext(context), args.task, { compact: args.full !== true }));
       },
     }),
 
     aegislane_read_current: tool({
       description: "Read and validate aegislane/state/current.json.",
-      args: {},
-      async execute(_args, context) {
-        return output(runtime, runtime.readCurrent(rootFromContext(context), { createMissing: true }));
+      args: {
+        full: tool.schema.boolean().describe("Return full current.json. Defaults to false for lower token use.").optional(),
+      },
+      async execute(args, context) {
+        const current = runtime.readCurrent(rootFromContext(context), { createMissing: true });
+        return output(runtime, args.full ? current : compactCurrent(current));
       },
     }),
 
@@ -230,17 +331,22 @@ function tools(runtime, tool) {
       description: "Read the active AegisLane phase markdown file.",
       args: {
         phase: tool.schema.string().describe("Optional phase id, such as 01-setup. Defaults to activePhase.").optional(),
+        full: tool.schema.boolean().describe("Return full phase content. Defaults to false for lower token use.").optional(),
       },
       async execute(args, context) {
-        return output(runtime, runtime.readPhase(rootFromContext(context), args.phase));
+        const phase = runtime.readPhase(rootFromContext(context), args.phase);
+        return output(runtime, args.full ? phase : compactPhase(phase));
       },
     }),
 
     aegislane_read_subagents: tool({
       description: "Read and validate aegislane/subagents.json.",
-      args: {},
-      async execute(_args, context) {
-        return output(runtime, runtime.readSubagents(rootFromContext(context), { createMissing: true }));
+      args: {
+        full: tool.schema.boolean().describe("Return full subagent registry. Defaults to false for lower token use.").optional(),
+      },
+      async execute(args, context) {
+        const registry = runtime.readSubagents(rootFromContext(context), { createMissing: true });
+        return output(runtime, args.full ? registry : compactSubagents(registry));
       },
     }),
 
@@ -254,17 +360,23 @@ function tools(runtime, tool) {
 
     aegislane_read_skill_discovery: tool({
       description: "Read and validate aegislane/policies/skill-discovery.json.",
-      args: {},
-      async execute(_args, context) {
-        return output(runtime, runtime.readSkillDiscoveryPolicy(rootFromContext(context), { createMissing: true }));
+      args: {
+        full: tool.schema.boolean().describe("Return full skill discovery policy. Defaults to false for lower token use.").optional(),
+      },
+      async execute(args, context) {
+        const policy = runtime.readSkillDiscoveryPolicy(rootFromContext(context), { createMissing: true });
+        return output(runtime, args.full ? policy : compactSkillDiscovery(policy));
       },
     }),
 
     aegislane_read_models: tool({
       description: "Read and validate aegislane/models.json, the source of truth for AegisLane primary and subagent model settings.",
-      args: {},
-      async execute(_args, context) {
-        return output(runtime, runtime.readModels(rootFromContext(context), { createMissing: true }));
+      args: {
+        full: tool.schema.boolean().describe("Return full model config. Defaults to false for lower token use.").optional(),
+      },
+      async execute(args, context) {
+        const models = runtime.readModels(rootFromContext(context), { createMissing: true });
+        return output(runtime, args.full ? models : compactModels(models));
       },
     }),
 
@@ -323,6 +435,7 @@ function tools(runtime, tool) {
         const root = rootFromContext(context);
         const current = runtime.readCurrent(root, { createMissing: true });
         const intake = runtime.taskIntake(root, args.task);
+        const compactIntake = runtime.taskIntake(root, args.task, { compact: true });
         const phase = runtime.readPhase(root, intake.phase.activePhase);
         const registry = runtime.readSubagents(root, { createMissing: true });
         const selected = new Set(String(args.selectedAgents || "").split(",").map((item) => item.trim()).filter(Boolean));
@@ -349,8 +462,6 @@ function tools(runtime, tool) {
               parallelSafe: agent.parallelSafe,
               targetPathsRequired: agent.targetPathsRequired,
               afterEachGate: agent.afterEachGate,
-              when: agent.when,
-              responsibilities: agent.responsibilities,
             };
           });
         const implementerSelected = agents.some((agent) => agent.id === "implementer" || agent.kiloAgent === "aegislane-implementer");
@@ -369,23 +480,21 @@ function tools(runtime, tool) {
         }
         return output(runtime, {
           ok: true,
-          instruction: "Invoke the selected kiloAgent names with this packet through Kilo Code's task tool. Do not do the subagent work in the primary AegisLane agent.",
+          instruction: "Invoke selected kiloAgent names with this compact packet. Read policyRefs only if needed.",
           task: args.task,
-          taskIntake: intake,
+          taskIntake: compactIntake,
           waveId: args.waveId || "",
           laneId: args.laneId || "",
           parallelGroup: args.parallelGroup || "",
           activePhase: phase.activePhase,
           phasePath: phase.path,
-          phaseContent: phase.content,
+          phaseSummary: phase.content.split("\n").filter((line) => /^#|^- /.test(line)).slice(0, 12).join("\n"),
+          policyRefs: compactIntake.policyRefs,
           current: {
-            allowedPaths: current.allowedPaths,
-            protectedPaths: current.protectedPaths,
             requiredChecks: intake.inferred.requiredChecks,
             maxFilesChanged: current.maxFilesChanged,
             maxLinesChanged: current.maxLinesChanged,
             parallelWork: current.parallelWork || { enabled: false },
-            pullRequest: current.pullRequest || { enabled: false },
             allowAutoCommit: current.allowAutoCommit,
             allowAutoPush: current.allowAutoPush,
             allowAutoDeploy: current.allowAutoDeploy,
@@ -395,12 +504,12 @@ function tools(runtime, tool) {
           targetPathWarnings,
           laneReservation,
           gatePlan: {
-            afterEachImplementer: [
-              "invoke aegislane-reviewer for the lane diff",
+            afterImplementerWave: [
+              "invoke aegislane-reviewer for each lane diff, parallel when supported",
               "invoke aegislane-tester when requiredChecks exist, when configured, or when checks fail",
-              "run prompt-inferred requiredChecks and current.json default requiredChecks when present",
-              "run aegislane_diff_policy",
-              "primary verifies changed files are allowed and not protected",
+              "run prompt-inferred requiredChecks and current.json default requiredChecks once after the wave when gateAfterParallelWave is true",
+              "run aegislane_diff_policy once after the wave when gateAfterParallelWave is true",
+              "primary verifies all changed files in the combined wave are allowed and not protected",
             ],
             stopOnFailure: true,
           },
@@ -518,13 +627,12 @@ const server = async (context) => {
       const sessionID = sessionIDFrom(input) || sessionIDFrom(hookOutput);
       const agentName = agentNameFrom(input, hookOutput);
       if (sessionID && shouldMarkAegisLane(runtime, { input, hookOutput })) aegislaneSessions.add(sessionID);
+      const paths = extractPathArgs(runtime, name, args);
 
       try {
-        if (isEditTool(name) && /^aegislane$/i.test(agentName)) {
-          throw new Error("AegisLane primary is orchestrator-only. Delegate file changes to aegislane-implementer.");
-        }
+        assertPrimaryEditAllowed(runtime, root, agentName, name, paths);
         if (/bash/i.test(name)) inspectBash(String(args.command || args.cmd || ""));
-        inspectPaths(runtime, root, name, extractPathArgs(runtime, name, args));
+        inspectPaths(runtime, root, name, paths);
         if (isTaskTool(name) && /aegislane-/i.test(JSON.stringify(runtime.sanitize(args)))) {
           log("subagent.delegation", { tool: name, sessionID, agentName, status: "requested" });
         }
@@ -550,14 +658,19 @@ const server = async (context) => {
     async event(envelope) {
       const event = envelope?.event || envelope;
       const sessionID = sessionIDFrom(event);
-      if (sessionID && shouldMarkAegisLane(runtime, event)) aegislaneSessions.add(sessionID);
+      const markedAegisLane = shouldMarkAegisLane(runtime, event);
+      if (sessionID && markedAegisLane) aegislaneSessions.add(sessionID);
       const type = String(event?.type || event?.name || event?.event || "");
-      log("kilo.event", { type, sessionID });
+      const terminalSessionEvent = /session\.(idle|error|deleted|done|stopped)$/i.test(type);
+      const lock = terminalSessionEvent ? runtime.readLock(root) : null;
+      const lockSessionMatches = Boolean(sessionID && lock?.sessionID === sessionID);
+      const trackedSession = Boolean(sessionID && aegislaneSessions.has(sessionID));
+      if (runtime.shouldLogHostEvent(type, { sessionID, markedAegisLane, trackedSession, lockSessionMatches })) {
+        log("kilo.event", { type, sessionID });
+      }
 
-      if (!/session\.(idle|error|deleted|done|stopped)$/i.test(type)) return;
-      const lock = runtime.readLock(root);
-      const lockSession = lock?.sessionID || null;
-      if (sessionID && (aegislaneSessions.has(sessionID) || lockSession === sessionID)) {
+      if (!terminalSessionEvent) return;
+      if (sessionID && (trackedSession || lockSessionMatches)) {
         const lanes = runtime.releaseLane(root, { all: true, status: "cancelled" });
         if (lanes.released) log("lane.cleanup", { sessionID, status: "released", releasedLanes: lanes.releasedLanes });
         const released = runtime.releaseLock(root);

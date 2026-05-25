@@ -2,10 +2,10 @@
 description: AegisLane read-only codebase explorer
 mode: subagent
 model: openai/gpt-5.5
-reasoningEffort: medium
+reasoningEffort: low
 textVerbosity: low
 reasoningSummary: auto
-steps: 14
+steps: 10
 permission:
   read: allow
   glob: allow

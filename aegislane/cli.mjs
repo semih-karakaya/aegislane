@@ -71,7 +71,7 @@ async function main() {
       print(status(root));
       return;
     case "acquire-lock":
-      print(acquireLock(root, { task: args.task, sessionID: args.session, agent: args.agent }));
+      print(acquireLock(root, { task: args.task, executionProfile: args["execution-profile"] || args.profile, sessionID: args.session, agent: args.agent }));
       return;
     case "release-lock":
       print(releaseLock(root));
@@ -92,7 +92,7 @@ async function main() {
       print(readCurrent(root, { createMissing: true }));
       return;
     case "task-intake":
-      print(taskIntake(root, args.task || args._.join(" ")));
+      print(taskIntake(root, args.task || args._.join(" "), { compact: !args.full }));
       return;
     case "read-phase":
       print(readPhase(root, args.phase));

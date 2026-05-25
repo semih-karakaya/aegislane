@@ -8,6 +8,7 @@ import {
   releaseLane,
   releaseLock,
   sanitize,
+  shouldLogHostEvent,
 } from "../../aegislane/runtime.mjs";
 
 const AEGISLANE_COMMAND = /(^|\s)\/?aegislane(\s|$)/i;
@@ -80,6 +81,17 @@ function isTaskTool(toolName: string) {
   return /(^|\.)(task)$/i.test(toolName) || /^task$/i.test(toolName);
 }
 
+function assertPrimaryEditAllowed(root: string, agentName: string, toolName: string, paths: string[]) {
+  if (!isEditTool(toolName) || !/^aegislane$/i.test(agentName)) return;
+  const lock = readLock(root);
+  if (!lock || lock.owner !== "aegislane" || lock.executionProfile !== "fast") {
+    throw new Error("AegisLane primary edits require an active fast-path lock. Use aegislane_acquire_lock with executionProfile=fast or delegate to aegislane-implementer.");
+  }
+  if (!paths.length) {
+    throw new Error("AegisLane primary fast-path edits require explicit file paths so guards can verify allowedPaths and protectedPaths.");
+  }
+}
+
 function inspectPaths(root: string, toolName: string, paths: string[]) {
   const edit = isEditTool(toolName);
   const read = isReadTool(toolName);
@@ -150,13 +162,12 @@ export const AegisLanePlugin = async (context: any) => {
       const sessionID = sessionIDFrom(input) || sessionIDFrom(output);
       const agentName = agentNameFrom(input, output);
       if (sessionID && shouldMarkAegisLane({ input, output })) aegislaneSessions.add(sessionID);
+      const paths = extractPathArgs(toolName, args);
 
       try {
-        if (isEditTool(toolName) && /^aegislane$/i.test(agentName)) {
-          throw new Error("AegisLane primary is orchestrator-only. Delegate file changes to aegislane-implementer.");
-        }
+        assertPrimaryEditAllowed(root, agentName, toolName, paths);
         if (/bash/i.test(toolName)) inspectBash(String(args.command || args.cmd || ""));
-        inspectPaths(root, toolName, extractPathArgs(toolName, args));
+        inspectPaths(root, toolName, paths);
         if (isTaskTool(toolName) && /aegislane-/i.test(JSON.stringify(sanitize(args)))) {
           log("subagent.delegation", { tool: toolName, sessionID, agentName, status: "requested" });
         }
@@ -182,14 +193,19 @@ export const AegisLanePlugin = async (context: any) => {
     async event(envelope: any) {
       const event = envelope?.event || envelope;
       const sessionID = sessionIDFrom(event);
-      if (sessionID && shouldMarkAegisLane(event)) aegislaneSessions.add(sessionID);
+      const markedAegisLane = shouldMarkAegisLane(event);
+      if (sessionID && markedAegisLane) aegislaneSessions.add(sessionID);
       const type = String(event?.type || event?.name || event?.event || "");
-      log("opencode.event", { type, sessionID });
+      const terminalSessionEvent = /session\.(idle|error|deleted|done|stopped)$/i.test(type);
+      const lock = terminalSessionEvent ? readLock(root) : null;
+      const lockSessionMatches = Boolean(sessionID && lock?.sessionID === sessionID);
+      const trackedSession = Boolean(sessionID && aegislaneSessions.has(sessionID));
+      if (shouldLogHostEvent(type, { sessionID, markedAegisLane, trackedSession, lockSessionMatches })) {
+        log("opencode.event", { type, sessionID });
+      }
 
-      if (!/session\.(idle|error|deleted|done|stopped)$/i.test(type)) return;
-      const lock = readLock(root);
-      const lockSession = lock?.sessionID || null;
-      if (sessionID && (aegislaneSessions.has(sessionID) || lockSession === sessionID)) {
+      if (!terminalSessionEvent) return;
+      if (sessionID && (trackedSession || lockSessionMatches)) {
         const lanes = releaseLane(root, { all: true, status: "cancelled" });
         if (lanes.released) log("lane.cleanup", { sessionID, status: "released", releasedLanes: lanes.releasedLanes });
         const released = releaseLock(root);

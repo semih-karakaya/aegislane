@@ -2,10 +2,10 @@
 description: AegisLane read-only official documentation scout
 mode: subagent
 model: openai/gpt-5.5
-reasoningEffort: medium
+reasoningEffort: low
 textVerbosity: low
 reasoningSummary: auto
-steps: 16
+steps: 12
 permission:
   read: allow
   glob: allow

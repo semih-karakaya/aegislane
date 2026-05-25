@@ -2,10 +2,10 @@
 description: AegisLane read-only test and check advisor
 mode: subagent
 model: openai/gpt-5.5
-reasoningEffort: high
+reasoningEffort: medium
 textVerbosity: low
 reasoningSummary: auto
-steps: 14
+steps: 10
 permission:
   read: allow
   glob: allow

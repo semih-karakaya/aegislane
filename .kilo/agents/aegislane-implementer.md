@@ -2,10 +2,10 @@
 description: AegisLane guarded implementation subagent
 mode: subagent
 model: openai/gpt-5.5
-reasoningEffort: high
+reasoningEffort: medium
 textVerbosity: low
 reasoningSummary: auto
-steps: 32
+steps: 24
 permission:
   read: allow
   glob: allow

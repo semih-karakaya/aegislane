@@ -2,10 +2,10 @@
 description: AegisLane read-only architecture reviewer
 mode: subagent
 model: openai/gpt-5.5
-reasoningEffort: high
+reasoningEffort: medium
 textVerbosity: low
 reasoningSummary: auto
-steps: 14
+steps: 12
 permission:
   read: allow
   glob: allow

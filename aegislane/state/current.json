@@ -39,7 +39,7 @@
   "requiredChecks": [],
   "maxFilesChanged": 8,
   "maxLinesChanged": 500,
-  "maxSafeStepMinutes": 90,
+  "maxSafeStepMinutes": 45,
   "promptIntake": {
     "enabled": true,
     "sourceOfTruth": "user_prompt",
@@ -51,13 +51,13 @@
   },
   "skillDiscovery": {
     "enabled": true,
-    "loadRequiredEveryRun": true,
+    "loadRequiredEveryRun": false,
     "requiredSkills": [
-      "aegislane-skill-finder",
-      "find-skills",
-      "karpathy-guidelines"
+      "aegislane-skill-finder"
     ],
     "opportunisticSkills": [
+      "find-skills",
+      "karpathy-guidelines",
       "aegislane-grill-me",
       "brainstorming",
       "writing-plans",
@@ -107,14 +107,58 @@
       "all acceptance criteria and target paths are already clear"
     ]
   },
+  "executionProfiles": {
+    "fast": {
+      "enabled": true,
+      "description": "Low-risk, explicit-path edits that should finish without subagent handoffs.",
+      "allowPrimaryEdits": true,
+      "requireActiveLock": true,
+      "requireExplicitTargetPaths": true,
+      "maxFilesChanged": 2,
+      "maxLinesChanged": 80,
+      "maxSafeStepMinutes": 10,
+      "skipReadOnlySubagents": true,
+      "skipImplementerSubagent": true,
+      "skipReviewerSubagent": true,
+      "skipTesterSubagentUnlessChecksFail": true,
+      "writeReport": false,
+      "writeShiftNote": false,
+      "appendLog": true,
+      "runDiffPolicy": true,
+      "runPrStatus": false
+    },
+    "standard": {
+      "enabled": true,
+      "description": "Normal guarded work with one implementer lane and focused verification.",
+      "allowPrimaryEdits": false,
+      "maxSafeStepMinutes": 45,
+      "writeReport": true,
+      "writeShiftNote": true,
+      "appendLog": true,
+      "runDiffPolicy": true,
+      "runPrStatus": true
+    },
+    "guarded": {
+      "enabled": true,
+      "description": "Risky, broad, or unclear work that keeps full subagent gates and clarification.",
+      "allowPrimaryEdits": false,
+      "maxSafeStepMinutes": 90,
+      "writeReport": true,
+      "writeShiftNote": true,
+      "appendLog": true,
+      "runDiffPolicy": true,
+      "runPrStatus": true
+    }
+  },
   "parallelWork": {
     "enabled": true,
-    "maxReadOnlySubagents": 3,
-    "maxImplementers": 2,
+    "maxReadOnlySubagents": 4,
+    "maxImplementers": 4,
     "requireDisjointPaths": true,
     "reviewAfterEachImplementer": true,
-    "testAfterEachImplementer": true,
-    "diffPolicyAfterEachImplementer": true
+    "testAfterEachImplementer": false,
+    "diffPolicyAfterEachImplementer": false,
+    "gateAfterParallelWave": true
   },
   "pullRequest": {
     "enabled": true,

@@ -6,13 +6,14 @@ When the `aegislane` agent is selected, every normal user prompt is an AegisLane
 
 AegisLane must:
 
-- infer task scope from the user prompt first, then validate current defaults, policies, subagents, skill discovery, and lane ledger before implementation
+- infer task scope and execution profile from the user prompt first, then validate the needed defaults and policies before implementation
 - acquire `aegislane/state/run.lock` before implementation and release it on every exit path
 - use `aegislane/subagents.json` as the editable source of truth for subagent selection
-- delegate code changes to `aegislane-implementer` instead of editing directly as the primary agent
-- run reviewer/tester/diff-policy gates after every implementer lane
+- use the `fast` profile for explicit low-risk tiny edits: primary may edit directly only under an active fast lock, then run diff policy and release the lock
+- delegate standard and guarded code changes to `aegislane-implementer` instead of editing directly as the primary agent
+- run disjoint implementer lanes in the same parallel wave when safe, then run reviewer/tester/diff-policy gates for the wave
 - keep implementation to one small safe step, or stop with the next safe step
-- write an AegisLane report, shift note, and JSONL log entry
+- write an AegisLane report, shift note, and JSONL log entry for standard/guarded work; fast profile may use only a compact JSONL log entry
 
 Hard guardrails:
 

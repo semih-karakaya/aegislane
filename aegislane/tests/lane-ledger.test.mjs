@@ -5,7 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { ensureMemory, pullRequestStatus, readLanes, registerLane, releaseLane, taskIntake } from "../runtime.mjs";
+import * as runtime from "../runtime.mjs";
+import { acquireLock, ensureMemory, pullRequestStatus, readLanes, readLock, registerLane, releaseLane, releaseLock, taskIntake } from "../runtime.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "aegislane-lanes-"));
@@ -46,6 +47,20 @@ assert.equal(disjoint.registered, true);
 const released = releaseLane(root, { laneId: "lane-a" });
 assert.equal(released.ok, true);
 assert.equal(released.released, true);
+
+const verified = releaseLane(root, { laneId: "lane-c", status: "verified" });
+assert.equal(verified.ok, true);
+assert.equal(verified.released, true);
+
+const afterVerified = registerLane(root, {
+  waveId: "implement-2",
+  laneId: "lane-d",
+  targetPaths: ["tests/user.test.ts"],
+  task: "reuse target after verified lane",
+});
+
+assert.equal(afterVerified.ok, true);
+assert.equal(afterVerified.registered, true);
 
 const afterRelease = registerLane(root, {
   waveId: "implement-2",
@@ -101,8 +116,68 @@ assert.equal(intake.manualCurrentJsonEditRequired, false);
 assert.deepEqual(intake.inferred.targetPaths, ["README.md"]);
 assert.deepEqual(intake.inferred.requiredChecks, ["npm test"]);
 assert.equal(intake.targetPathStatus[0].allowed, true);
+assert.equal(intake.inferred.executionProfile, "fast");
+assert.equal(intake.inferred.fastPathEligible, true);
+
+const compactIntake = taskIntake(intakeRoot, "update README.md and run npm test", { compact: true });
+assert.equal(compactIntake.ok, true);
+assert.equal(compactIntake.profile, "fast");
+assert.deepEqual(compactIntake.targets, ["README.md"]);
+assert.equal(compactIntake.guardrails, undefined);
+assert.ok(JSON.stringify(compactIntake).length < JSON.stringify(intake).length / 2);
+
+const shortFastIntake = taskIntake(intakeRoot, "fix README.md");
+assert.equal(shortFastIntake.inferred.needsClarification, false);
+assert.equal(shortFastIntake.inferred.executionProfile, "fast");
+
+const vagueCodeIntake = taskIntake(intakeRoot, "fix bug in src/user.ts");
+assert.equal(vagueCodeIntake.inferred.executionProfile, "fast");
+assert.equal(vagueCodeIntake.inferred.fastPathEligible, true);
+
+const parallelIntake = taskIntake(
+  intakeRoot,
+  "fix loading bugs in src/settings.ts and tests/settings.test.ts",
+);
+assert.equal(parallelIntake.inferred.executionProfile, "fast");
+assert.equal(parallelIntake.parallelPlan.mode, "direct");
+assert.equal(parallelIntake.parallelPlan.maxConcurrentLanes, 0);
+
+const standardParallelIntake = taskIntake(
+  intakeRoot,
+  "fix bugs in src/a.ts src/b.ts tests/a.test.ts",
+);
+assert.equal(standardParallelIntake.inferred.executionProfile, "standard");
+assert.equal(standardParallelIntake.parallelPlan.mode, "parallel-implementer-wave");
+assert.equal(standardParallelIntake.parallelPlan.maxConcurrentLanes, 3);
+
+const multiTargetStandardIntake = taskIntake(
+  intakeRoot,
+  "refactor helpers in src/a.ts and src/b.ts",
+);
+assert.equal(multiTargetStandardIntake.inferred.executionProfile, "guarded");
+assert.equal(multiTargetStandardIntake.parallelPlan.mode, "parallel-readonly-then-serial-or-lanes");
+assert.deepEqual(multiTargetStandardIntake.parallelPlan.targetPaths, ["src/a.ts", "src/b.ts"]);
 
 const riskyIntake = taskIntake(intakeRoot, "fix auth login in src/auth.ts");
 assert.deepEqual(riskyIntake.inferred.targetPaths, ["src/auth.ts"]);
 assert.ok(riskyIntake.inferred.riskFlags.includes("auth"));
 assert.equal(riskyIntake.inferred.needsClarification, true);
+assert.equal(riskyIntake.inferred.executionProfile, "guarded");
+
+const lockRoot = fs.mkdtempSync(path.join(os.tmpdir(), "aegislane-lock-profile-"));
+ensureMemory(lockRoot);
+const fastLock = acquireLock(lockRoot, {
+  task: "fix README.md",
+  executionProfile: "fast",
+  agent: "aegislane",
+});
+assert.equal(fastLock.ok, true);
+assert.equal(readLock(lockRoot).executionProfile, "fast");
+assert.equal(releaseLock(lockRoot).released, true);
+
+assert.equal(typeof runtime.shouldLogHostEvent, "function");
+assert.equal(runtime.shouldLogHostEvent("file.watcher.updated"), false);
+assert.equal(runtime.shouldLogHostEvent("vcs.branch.updated", { sessionID: "s1", trackedSession: true }), false);
+assert.equal(runtime.shouldLogHostEvent("session.done", { sessionID: "s1", trackedSession: true }), true);
+assert.equal(runtime.shouldLogHostEvent("message.created", { sessionID: "s1", trackedSession: true }), true);
+assert.equal(runtime.shouldLogHostEvent("message.created"), false);

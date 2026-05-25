@@ -1,13 +1,13 @@
 {
   "version": 1,
   "enabled": true,
-  "loadRequiredEveryRun": true,
+  "loadRequiredEveryRun": false,
   "requiredSkills": [
-    "aegislane-skill-finder",
-    "find-skills",
-    "karpathy-guidelines"
+    "aegislane-skill-finder"
   ],
   "opportunisticSkills": [
+    "find-skills",
+    "karpathy-guidelines",
     "aegislane-grill-me",
     "brainstorming",
     "writing-plans",
